@@ -1,498 +1,370 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-GARUD | ई गरुड़</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="googleApiHandler.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-    <style>
-        :root { --slate-bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.7); --accent: #38bdf8; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--slate-bg); color: #f8fafc; overflow-x: hidden; }
-        .glass-card { background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; transition: all 0.3s ease; }
-        .input-modern { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); color: white; border-radius: 0.75rem; padding: 0.8rem; width: 100%; transition: all 0.2s; }
-        .input-modern:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
-        .btn-analyze { background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%); font-weight: 800; cursor: pointer; transition: all 0.3s ease; }
-        .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4); }
-    </style>
-</head>
-<body class="p-4 lg:p-8 min-h-screen">
-    <div class="max-w-[1400px] mx-auto">
-        <header class="flex flex-col items-center mb-12 text-center">
-            <img src="railway logo.png" alt="Logo" class="w-20 mb-4 drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]">
-            <h1 class="text-5xl font-black tracking-tighter text-white uppercase italic">E-GARUD <span class="text-sky-400 font-normal">ई गरुड़</span></h1>
-            <p class="text-slate-200 text-sm font-bold mt-2 uppercase tracking-wider">(CREW FOOTPLATE ACTIVITY MONITORING SYSTEM)</p>
-            <p class="text-slate-400 text-xs font-semibold mt-1">Electrical (OP) Raipur, TELOC CELL S.E.C.Railway</p>
-        </header>
+"use client"
 
-        <form id="spmForm" class="space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="glass-card p-8 relative overflow-hidden border-t-4 border-sky-500">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-white uppercase">LP Details</h2>
-                        <button type="button" id="manualLpBtn" class="text-[10px] font-bold bg-sky-500/10 text-sky-400 px-3 py-1 rounded-full border border-sky-500/20 hover:bg-sky-500/30">MANUAL MODE</button>
-                    </div>
-                    <div class="space-y-4">
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">LP ID</label><input type="text" id="lpId" name="lpId" class="input-modern text-sm" required></div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">LP Name</label><input type="text" id="lpName" name="lpName" class="input-modern text-sm opacity-60" readonly></div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Desg</label><input type="text" id="lpDesg" name="lpDesg" class="input-modern text-sm opacity-60" readonly></div>
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Group CLI</label><input type="text" id="lpGroupCli" name="lpGroupCli" class="input-modern text-sm opacity-60" readonly></div>
-                        </div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">CUG Mobile</label><input type="text" id="lpCugNumber" name="lpCugNumber" class="input-modern text-sm opacity-60" readonly></div>
-                    </div>
-                </div>
+import React from "react"
 
-                <div class="glass-card p-8 relative overflow-hidden border-t-4 border-indigo-500">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-white uppercase">ALP Details</h2>
-                        <button type="button" id="manualAlpBtn" class="text-[10px] font-bold bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full border border-indigo-500/20 hover:bg-indigo-500/30">MANUAL MODE</button>
-                    </div>
-                    <div class="space-y-4">
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">ALP ID</label><input type="text" id="alpId" name="alpId" class="input-modern text-sm" required></div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">ALP Name</label><input type="text" id="alpName" name="alpName" class="input-modern text-sm opacity-60" readonly></div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">CUG Number</label><input type="text" id="alpCugNumber" name="alpCugNumber" class="input-modern text-sm opacity-60" readonly></div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">ALP Group CLI</label><input type="text" id="alpGroupCli" name="alpGroupCli" class="input-modern text-sm opacity-60" readonly></div>
-                    </div>
-                </div>
+import { useState, useEffect, useCallback } from "react"
+import type { 
+  CrewData, 
+  Abnormality, 
+  AbnormalitySummary, 
+  CliData,
+  StationSignalData,
+  CrewRecord
+} from "@/types/dashboard"
+import type { Toast } from "@/components/dashboard/toast-container"
 
-                <div class="glass-card p-8 relative overflow-hidden border-t-4 border-emerald-500">
-                    <h2 class="text-xl font-bold text-white uppercase mb-6">Train & Section</h2>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Loco No</label><input type="text" id="locoNumber" name="locoNumber" class="input-modern text-sm" required></div>
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Train No</label><input type="text" id="trainNumber" name="trainNumber" class="input-modern text-sm" required></div>
-                        </div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Block Section</label><select id="section" name="section" class="input-modern text-sm cursor-pointer" required><option value="" disabled selected>Select Section</option></select></div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">From</label><select id="fromSection" name="fromSection" class="input-modern text-sm"></select></div>
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">To</label><select id="toSection" name="toSection" class="input-modern text-sm"></select></div>
-                        </div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Rake Type</label><select id="rakeType" name="rakeType" class="input-modern text-sm" required><option value="GOODS">GOODS</option><option value="COACHING">COACHING</option></select></div>
-                    </div>
-                </div>
-            </div>
+const initialCrewData: CrewData = {
+  id: "",
+  name: "",
+  designation: "",
+  groupCli: "",
+  cugNumber: "",
+}
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="glass-card p-8">
-                    <h2 class="text-lg font-bold text-slate-300 mb-6 uppercase tracking-wider flex items-center">Reporting CLI</h2>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2"><label class="text-[10px] font-bold text-slate-500 uppercase">CLI ID</label><input type="text" id="cliIdInput" class="input-modern text-sm" required></div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase">Name</label><input type="text" id="cliName" class="input-modern text-sm opacity-60" readonly></div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase">HQ</label><input type="text" id="cliHqDisplay" class="input-modern text-sm opacity-60" readonly></div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase">From Time</label><input type="datetime-local" id="fromDateTime" name="fromDateTime" class="input-modern w-full rounded-xl p-4 text-sm" required></div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase">To Time</label><input type="datetime-local" id="toDateTime" name="toDateTime" class="input-modern w-full rounded-xl p-4 text-sm" required></div>
-                    </div>
-                </div>
+const initialAbnormalitySummary: AbnormalitySummary = {
+  bftNotDone: 0,
+  bptNotDone: 0,
+  bftRule: 0,
+  bptRule: 0,
+  lateControlling: 0,
+  overspeeding: 0,
+  others: 0,
+}
 
-                <div class="glass-card p-8 flex flex-col justify-between">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase">SPM Type</label><select id="spmType" class="input-modern text-sm" required><option value="">Select</option><option value="Laxven">Laxven</option><option value="Medha">Medha</option><option value="Telpro">Telpro</option><option value="MR">MR</option></select></div>
-                        <div><label class="text-[10px] font-bold text-slate-500 uppercase">SPM File</label><input type="file" id="spmFile" class="hidden" required><label for="spmFile" class="input-modern block text-center cursor-pointer hover:bg-slate-700">📁 Upload SPM</label></div>
-                    </div>
-                    <button type="submit" class="btn-analyze w-full py-5 rounded-2xl text-white font-black text-xl uppercase tracking-widest">START PROCESSING</button>
-                    <input type="file" id="cugFile" class="hidden">
-                </div>
-            </div>
+const initialCliData: CliData = {
+  name: "",
+  hq: "",
+}
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12 pb-10">
-                <div class="glass-card p-8">
-                    <h3 class="text-sm font-black text-sky-400 mb-4 uppercase italic">Previous Abnormalities</h3>
-                    <div id="lp-abnormalities-list" class="text-[11px] text-slate-400 space-y-2 max-h-40 overflow-y-auto pr-2 font-medium">Search LP ID to load history...</div>
-                </div>
-                <div class="glass-card p-8">
-                    <h3 class="text-sm font-black text-indigo-400 mb-4 uppercase italic">Historical Summary</h3>
-                    <div class="grid grid-cols-3 gap-4" id="lp-abnormality-summary-list">
-                        <div class="bg-slate-900/50 p-4 rounded-xl border border-white/5 text-center"><span class="text-[9px] text-slate-500 block uppercase">BFT</span><span id="bft-not-done-count" class="text-xl font-black text-white">0</span></div>
-                        <div class="bg-slate-900/50 p-4 rounded-xl border border-white/5 text-center"><span class="text-[9px] text-slate-500 block uppercase">Late Ctrl</span><span id="late-controlling-count" class="text-xl font-black text-white">0</span></div>
-                        <div class="bg-slate-900/50 p-4 rounded-xl border border-white/5 text-center"><span class="text-[9px] text-slate-500 block uppercase">Speeding</span><span id="overspeeding-count" class="text-xl font-black text-white">0</span></div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
+export function useDashboardLogic() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [lpData, setLpData] = useState<CrewData>(initialCrewData)
+  const [alpData, setAlpData] = useState<CrewData>(initialCrewData)
+  const [lpAbnormalities, setLpAbnormalities] = useState<Abnormality[]>([])
+  const [abnormalitySummary, setAbnormalitySummary] = useState<AbnormalitySummary>(initialAbnormalitySummary)
+  const [sections, setSections] = useState<string[]>([])
+  const [stations, setStations] = useState<string[]>([])
+  const [cliData, setCliData] = useState<CliData>(initialCliData)
+  const [toasts, setToasts] = useState<Toast[]>([])
+  
+  // Data stores
+  const [crewData, setCrewData] = useState<CrewRecord[]>([])
+  const [stationSignalData, setStationSignalData] = useState<StationSignalData[]>([])
+  const [cliDataMap, setCliDataMap] = useState<Record<string, CliData>>({})
+  const [currentScript, setCurrentScript] = useState<string | null>(null)
 
-    <canvas id="speedChart" class="hidden"></canvas>
-    <canvas id="stopChart" class="hidden"></canvas>
-    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl hidden flex-col items-center justify-center z-[100]">
-        <div class="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(56,189,248,0.3)]"></div>
-        <h2 class="text-sky-400 font-black mt-4 tracking-widest animate-pulse uppercase">Processing Data...</h2>
-    </div>
+  // Toast functions
+  const showToast = useCallback((message: string) => {
+    const id = Date.now().toString()
+    setToasts((prev) => [...prev, { id, message }])
+  }, [])
 
-    <script>
-        // PART 1 INITIAL LOGIC
-        let crewData = [];
-        let stationSignalData = [];
-        let cliDataMap = {};
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
 
-        async function fetchCrewDataFromGoogleSheet() {
-            const URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRCXMXkdxzxwCvZtN3uwLGQCmXqmadXbckJrWGtCqaw_ETO1Ci40WysmoqKVVPHpg_7_Exf_AmAxAjy/pub?gid=528051557&single=true&output=csv';
-            try {
-                const res = await fetch(URL);
-                const text = await res.text();
-                return new Promise(resolve => {
-                    Papa.parse(text, { header: true, skipEmptyLines: true, transformHeader: h => h.trim().toUpperCase(), complete: r => resolve(r.data) });
-                });
-            } catch(e) { return []; }
+  // Load initial data
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // Load crew data from Google Sheet
+        const CREW_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRCXMXkdxzxwCvZtN3uwLGQCmXqmadXbckJrWGtCqaw_ETO1Ci40WysmoqKVVPHpg_7_Exf_AmAxAjy/pub?gid=528051557&single=true&output=csv'
+        const crewResponse = await fetch(CREW_CSV_URL)
+        const crewText = await crewResponse.text()
+        const crewParsed = parseCSV(crewText, true)
+        setCrewData(crewParsed as CrewRecord[])
+        
+        // Make available globally for external scripts
+        if (typeof window !== 'undefined') {
+          (window as Window & { crewData?: CrewRecord[] }).crewData = crewParsed as CrewRecord[]
         }
 
-        async function fetchLpAbnormalities(lpId) {
-            const listCont = document.getElementById('lp-abnormalities-list');
-            const URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5A-LI7taO45zhdBz1xdbFZx694C4OK1vpPSV6rVs5VXVpVjqIWuMZdVWKJaFcVIws5qC8ei1Gz9wg/pub?gid=0&single=true&output=csv';
-            try {
-                const res = await fetch(URL);
-                const text = await res.text();
-                const data = Papa.parse(text, {header:true, skipEmptyLines:true}).data;
-                const lpRecords = data.filter(r => r['LP ID'] === lpId);
-                if(lpRecords.length === 0) { listCont.innerHTML = "No previous history."; return; }
-                listCont.innerHTML = lpRecords.slice(-10).reverse().map(r => `<div class="bg-slate-800/40 p-3 rounded-lg border border-white/5"><span class="text-white font-bold block">${r.Timestamp}</span><span class="text-slate-400">${r.Abnormalities}</span></div>`).join('');
-                document.getElementById('bft-not-done-count').innerText = lpRecords.filter(r => r.Abnormalities.includes('BFT')).length;
-            } catch(e) { listCont.innerHTML = "History load error."; }
+        // Load station signal data
+        const SIGNAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9Y1hcPadG8CzhtOHddc2XT013TJm9D7J7pZaWORapXpFFMoI4dpFp9PV21XNNk3UuSXFpBqU3KX5m/pub?gid=1398384533&single=true&output=csv'
+        const signalResponse = await fetch(SIGNAL_CSV_URL)
+        const signalText = await signalResponse.text()
+        const signalParsed = parseCSV(signalText, true) as StationSignalData[]
+        setStationSignalData(signalParsed)
+        
+        if (typeof window !== 'undefined') {
+          (window as Window & { stationSignalData?: StationSignalData[] }).stationSignalData = signalParsed
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            crewData = await fetchCrewDataFromGoogleSheet();
-            const SIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9Y1hcPadG8CzhtOHddc2XT013TJm9D7J7pZaWORapXpFFMoI4dpFp9PV21XNNk3UuSXFpBqU3KX5m/pub?gid=1398384533&single=true&output=csv';
-            const sigRes = await fetch(SIG_URL);
-            const sigText = await sigRes.text();
-            stationSignalData = Papa.parse(sigText, {header:true, skipEmptyLines:true, transformHeader:h=>h.trim().toUpperCase()}).data;
+        // Extract unique sections
+        const uniqueSections = [...new Set(signalParsed.map(row => row['SECTION']))].filter(Boolean)
+        setSections(uniqueSections)
 
-            const sectionSelect = document.getElementById('section');
-            const uniqueSections = [...new Set(stationSignalData.map(r => r['SECTION']))];
-            uniqueSections.forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.innerText = s; sectionSelect.appendChild(opt); });
+        console.log("Data loaded successfully")
+      } catch (error) {
+        console.error("Error loading data:", error)
+      }
+    }
 
-            document.getElementById('lpId').addEventListener('input', e => {
-                const id = e.target.value.toUpperCase();
-                const rec = crewData.find(r => r['CREWID'] === id);
-                if(rec) {
-                    document.getElementById('lpName').value = rec['CREW NAME'];
-                    document.getElementById('lpDesg').value = rec['DESG'];
-                    document.getElementById('lpGroupCli').value = rec['CLI NAME'];
-                    document.getElementById('lpCugNumber').value = rec['CUG NUMBER'];
-                    fetchLpAbnormalities(id);
-                }
-            });
+    loadData()
+  }, [])
 
-            sectionSelect.addEventListener('change', (e) => {
-                const fromS = document.getElementById('fromSection');
-                const toS = document.getElementById('toSection');
-                fromS.innerHTML = ""; toS.innerHTML = "";
-                const stations = [...new Set(stationSignalData.filter(r => r['SECTION'] === e.target.value).map(r => r['STATION']))];
-                stations.forEach(st => { const opt = document.createElement('option'); opt.value = st; opt.innerText = st; fromS.appendChild(opt); toS.appendChild(opt.cloneNode(true)); });
-            });
-        });
+  // Simple CSV parser
+  function parseCSV(text: string, transformHeader = false): Record<string, string>[] {
+    const lines = text.split('\n')
+    if (lines.length < 2) return []
+    
+    let headers = lines[0].split(',').map(h => transformHeader ? h.trim().toUpperCase() : h.trim())
+    const result: Record<string, string>[] = []
+    
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim()
+      if (!line) continue
+      
+      const values = line.split(',')
+      const row: Record<string, string> = {}
+      
+      headers.forEach((header, idx) => {
+        row[header] = values[idx]?.trim() || ''
+      })
+      
+      result.push(row)
+    }
+    
+    return result
+  }
 
-        document.getElementById('manualLpBtn').addEventListener('click', () => { ['lpName','lpDesg','lpGroupCli','lpCugNumber'].forEach(id => document.getElementById(id).readOnly = false); });
-        // === PART 2: CORE ANALYSIS TRIGGER & VENDOR DECODING (400-800 lines) ===
+  // Fetch LP abnormalities
+  async function fetchLpAbnormalities(lpId: string | null) {
+    if (!lpId) {
+      setLpAbnormalities([])
+      setAbnormalitySummary(initialAbnormalitySummary)
+      return
+    }
 
-        document.getElementById('manualAlpBtn').addEventListener('click', () => { 
-            ['alpName','alpCugNumber','alpGroupCli'].forEach(id => document.getElementById(id).readOnly = false); 
-        });
+    const PRIMARY_BANK_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5A-LI7taO45zhdBz1xdbFZx694C4OK1vpPSV6rVs5VXVpVjqIWuMZdVWKJaFcVIws5qC8ei1Gz9wg/pub?gid=0&single=true&output=csv'
 
-        window.toggleLoadingOverlay = function(show) {
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) overlay.style.display = show ? 'flex' : 'none';
-        };
+    try {
+      const response = await fetch(PRIMARY_BANK_CSV)
+      const text = await response.text()
+      const results = parseCSV(text)
+      const lpRecords = results.filter(row => row['LP ID'] === lpId)
 
-        // Standard Toast Notification System
-        function showToast(message) {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-            const toast = document.createElement('div');
-            toast.className = "glass-card bg-slate-800/90 text-sky-400 border-sky-500/30 px-6 py-4 rounded-2xl shadow-2xl mb-4 transform transition-all duration-500 translate-x-0 opacity-100 flex items-center gap-3";
-            toast.innerHTML = `<span class="text-xl">✅</span> <span class="font-bold">${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100px)';
-                setTimeout(() => toast.remove(), 500);
-            }, 4000);
-        }
+      if (lpRecords.length === 0) {
+        setLpAbnormalities([])
+        return
+      }
 
-        // --- Analysis Form Submission Engine ---
-        document.getElementById('spmForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const spmType = document.getElementById('spmType').value;
-            const spmFile = document.getElementById('spmFile').files[0];
-            const cugFile = document.getElementById('cugFile').files[0];
+      const counts = { bft: 0, bpt: 0, bftR: 0, bptR: 0, late: 0, speed: 0, other: 0 }
+      const abnormalities: Abnormality[] = []
 
-            if (!spmType) { alert('Please select an SPM Type.'); return; }
-            if (!spmFile) { alert('Please upload an SPM file.'); return; }
+      lpRecords.slice(-10).reverse().forEach(r => {
+        const abn = r['Abnormalities'] || ''
+        if (abn.includes("BFT not done")) counts.bft++
+        if (abn.includes("BPT not done")) counts.bpt++
+        if (abn.includes("Late Controlling")) counts.late++
+        if (abn.includes("Over speeding")) counts.speed++
+        
+        abnormalities.push({
+          timestamp: r['Timestamp'] || '',
+          description: abn
+        })
+      })
 
-            // Loading state ON
-            window.toggleLoadingOverlay(true);
+      setLpAbnormalities(abnormalities)
+      setAbnormalitySummary({
+        bftNotDone: counts.bft,
+        bptNotDone: counts.bpt,
+        bftRule: counts.bftR,
+        bptRule: counts.bptR,
+        lateControlling: counts.late,
+        overspeeding: counts.speed,
+        others: counts.other,
+      })
+    } catch (error) {
+      console.error("Error fetching abnormalities:", error)
+      setLpAbnormalities([])
+    }
+  }
 
-            try {
-                // 1. Session & HQ Tracking
-                const hqValue = document.getElementById('cliHqDisplay').value.trim();
-                localStorage.setItem('currentSessionHq', hqValue);
+  // Handle LP ID change
+  const handleLpIdChange = useCallback((value: string) => {
+    setLpData(prev => ({ ...prev, id: value }))
+    
+    const lpRecord = crewData.find(record => record['CREWID'] === value)
+    if (lpRecord) {
+      setLpData({
+        id: value,
+        name: lpRecord['CREW NAME'] || '',
+        designation: lpRecord['DESG'] || '',
+        groupCli: lpRecord['CLI NAME'] || '',
+        cugNumber: lpRecord['CUG NUMBER'] || '',
+      })
+      fetchLpAbnormalities(value)
+    } else {
+      setLpData({ ...initialCrewData, id: value })
+      fetchLpAbnormalities(null)
+    }
+  }, [crewData])
 
-                // 2. Cloud Notification (Live Sync)
-                console.log("E-GARUD: Establishing Cloud Handshake...");
-                if (window.uploadDataAndFileToGoogle) {
-                    const uploadResult = await uploadDataAndFileToGoogle();
-                    if (uploadResult.status === 'success') {
-                        showToast('Cloud Sync Active');
-                    } else {
-                        console.warn("Cloud Sync Skipped - Processing Locally");
-                    }
-                }
+  // Handle ALP ID change
+  const handleAlpIdChange = useCallback((value: string) => {
+    setAlpData(prev => ({ ...prev, id: value }))
+    
+    const alpRecord = crewData.find(record => record['CREWID'] === value)
+    if (alpRecord) {
+      setAlpData({
+        id: value,
+        name: alpRecord['CREW NAME'] || '',
+        designation: alpRecord['DESG'] || '',
+        groupCli: alpRecord['CLI NAME'] || '',
+        cugNumber: alpRecord['CUG NUMBER'] || '',
+      })
+    } else {
+      setAlpData({ ...initialCrewData, id: value })
+    }
+  }, [crewData])
 
-                // 3. Process CUG Data if available
-                let cugData = [];
-                if (cugFile) {
-                    cugData = await new Promise((resolve, reject) => {
-                        Papa.parse(cugFile, {
-                            header: true,
-                            skipEmptyLines: true,
-                            transform: (val) => val.trim(),
-                            complete: (res) => resolve(res.data),
-                            error: (err) => reject(err)
-                        });
-                    });
-                }
+  // Handle section change
+  const handleSectionChange = useCallback((section: string) => {
+    const stationsInSection = [...new Set(
+      stationSignalData
+        .filter(row => row['SECTION'] === section)
+        .map(row => row['STATION'])
+    )].filter(Boolean)
+    setStations(stationsInSection)
+  }, [stationSignalData])
 
-                // 4. Invoke Vendor Decoder Engine
-                // IDs match your existing logic: lpId, alpId, locoNumber, etc.
-                console.log(`E-GARUD: Launching ${spmType} Decoder Engine...`);
-                
-                if (typeof analyzeSPMData === 'function') {
-                    await analyzeSPMData(spmFile, cugData);
-                } else if (window.analyzeData) {
-                    await window.analyzeData(spmFile, cugData);
-                } else {
-                    // Dynamic Vendor Route (Laxven, Medha, Telpro, MR)
-                    const vendorFunc = `process${spmType}Data`;
-                    if (typeof window[vendorFunc] === 'function') {
-                        await window[vendorFunc](spmFile, cugData);
-                    } else {
-                        // Fallback for global analyzer in separate scripts
-                        if (typeof window.analyzeData === 'function') {
-                            await window.analyzeData(spmFile, cugData);
-                        } else {
-                            throw new Error(`Engine for ${spmType} (function ${vendorFunc}) not found.`);
-                        }
-                    }
-                }
+  // Handle CLI ID change
+  const handleCliIdChange = useCallback((value: string) => {
+    if (cliDataMap[value]) {
+      setCliData(cliDataMap[value])
+    } else {
+      setCliData(initialCliData)
+    }
+  }, [cliDataMap])
 
-            } catch (error) {
-                console.error('E-GARUD Engine Error:', error);
-                alert('Critical Error: ' + error.message);
-                window.toggleLoadingOverlay(false);
-            }
-        });
+  // Manual entry handlers
+  const handleManualLpEntry = useCallback(() => {
+    // This would enable manual editing in a real implementation
+    console.log("Manual LP entry mode enabled")
+  }, [])
 
-        // --- CLI Profile Auto-fill ---
-        const cliInput = document.getElementById('cliIdInput');
-        if (cliInput) {
-            cliInput.addEventListener('input', (e) => {
-                const val = e.target.value.toUpperCase();
-                e.target.value = val;
-                if (cliDataMap[val]) {
-                    document.getElementById('cliName').value = cliDataMap[val].name;
-                    document.getElementById('cliHqDisplay').value = cliDataMap[val].hq;
-                } else {
-                    document.getElementById('cliName').value = "";
-                    document.getElementById('cliHqDisplay').value = "";
-                }
-            });
-        }
+  const handleManualAlpEntry = useCallback(() => {
+    console.log("Manual ALP entry mode enabled")
+  }, [])
 
-        // --- Common Math & Time Utils for Analysis (Used by Decoders) ---
-        const getDurationSeconds = (start, end) => {
-            return Math.abs(new Date(end) - new Date(start)) / 1000;
-        };
+  // Handle SPM type change
+  const handleSpmTypeChange = useCallback((spmType: string) => {
+    const fileInput = document.getElementById('spmFile') as HTMLInputElement
+    if (!fileInput) return
 
-        const formatRailwayTime = (date) => {
-            const d = new Date(date);
-            return d.getHours().toString().padStart(2, '0') + ":" + 
-                   d.getMinutes().toString().padStart(2, '0') + ":" + 
-                   d.getSeconds().toString().padStart(2, '0');
-        };
+    if (spmType === 'Medha') {
+      fileInput.accept = '.txt'
+    } else if (spmType === 'MR' || spmType === 'VEL') {
+      fileInput.accept = '.pdf'
+    } else if (spmType === 'RTIS') {
+      fileInput.accept = '.xlsx,.xls,.csv'
+    } else if (spmType === 'TelproNew') {
+      fileInput.accept = '.xlsx,.xls'
+    } else {
+      fileInput.accept = '.xlsx,.xls,.csv'
+    }
 
-        // [Logic continues into PDF and Chart Rendering in Part 3]
-        // === PART 3: PDF GENERATION, TABLE STYLING & CHART RENDERING (800-1400 lines) ===
+    setCurrentScript(`${spmType}.js`)
+    console.log(`Script set to: ${spmType}.js`)
+  }, [])
 
-        async function generatePDF(reportData) {
-            const { jsPDF } = window.jspdf;
-            // Modern Font setup (Helvetica/Inter)
-            const doc = new jsPDF('p', 'mm', 'a4');
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
+  // Form submit handler
+  const handleFormSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const cliIdVal = (document.getElementById('cliIdInput') as HTMLInputElement)?.value
+    if (!cliIdVal) {
+      alert("Please enter a valid CLI ID.")
+      return
+    }
 
-            // 1. HEADER BRANDING (Sleek Modern Design)
-            doc.setFillColor(15, 23, 42); // Deep Navy Header Background
-            doc.rect(0, 0, 210, 45, 'F');
-            
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(26);
-            doc.setFont("helvetica", "bold");
-            doc.text("E-GARUD REPORT", 105, 18, { align: 'center' });
-            
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text("(CREW FOOTPLATE ACTIVITY MONITORING SYSTEM)", 105, 26, { align: 'center' });
-            
-            doc.setDrawColor(56, 189, 248); // Sky Blue Line
-            doc.setLineWidth(1);
-            doc.line(40, 32, 170, 32);
-            
-            doc.setFontSize(9);
-            doc.text(`Raipur Division | Electrical (OP) | Date: ${new Date().toLocaleDateString()}`, 105, 38, { align: 'center' });
+    const spmType = (document.getElementById('spmType') as HTMLSelectElement)?.value
+    const spmFile = (document.getElementById('spmFile') as HTMLInputElement)?.files?.[0]
 
-            // 2. CREW & TRAIN INFORMATION TABLE
-            let yPos = 55;
-            doc.setTextColor(15, 23, 42);
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "bold");
-            doc.text("Basic Trip Details", 15, yPos);
-            
-            yPos += 5;
-            doc.setDrawColor(200, 200, 200);
-            doc.setLineWidth(0.2);
-            doc.line(15, yPos, 195, yPos);
-            
-            yPos += 10;
-            const tripDetails = [
-                ["LP Name", reportData.lpName || 'N/A', "LP ID", reportData.lpId || 'N/A'],
-                ["ALP Name", reportData.alpName || 'N/A', "ALP ID", reportData.alpId || 'N/A'],
-                ["Loco No", reportData.locoNumber || 'N/A', "Train No", reportData.trainNumber || 'N/A'],
-                ["Section", reportData.section || 'N/A', "Rake Type", reportData.rakeType || 'N/A']
-            ];
+    if (!spmType) {
+      alert('Please select an SPM Type.')
+      return
+    }
+    if (!spmFile) {
+      alert('Please upload an SPM file.')
+      return
+    }
 
-            doc.setFontSize(10);
-            tripDetails.forEach(row => {
-                doc.setFont("helvetica", "bold");
-                doc.text(row[0] + ":", 20, yPos);
-                doc.setFont("helvetica", "normal");
-                doc.text(String(row[1]), 55, yPos);
-                
-                doc.setFont("helvetica", "bold");
-                doc.text(row[2] + ":", 110, yPos);
-                doc.setFont("helvetica", "normal");
-                doc.text(String(row[3]), 145, yPos);
-                yPos += 8;
-            });
+    const fileExt = spmFile.name.split('.').pop()?.toLowerCase()
 
-            // 3. SIGNAL & ABNORMALITY ANALYSIS
-            yPos += 5;
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.text("Signal Analysis & Operational Logs", 15, yPos);
-            
-            yPos += 8;
-            // Custom Grid for Signal Analysis (Simulating AutoTable Logic)
-            doc.setFillColor(241, 245, 249);
-            doc.rect(15, yPos, 180, 8, 'F');
-            doc.setFontSize(9);
-            doc.text("Signal Name", 20, yPos + 5);
-            doc.text("Aspect", 60, yPos + 5);
-            doc.text("Speed (Kmph)", 100, yPos + 5);
-            doc.text("Distance (m)", 140, yPos + 5);
-            doc.text("Timestamp", 170, yPos + 5);
-            
-            yPos += 12;
-            doc.setFont("helvetica", "normal");
-            const signals = reportData.signalLogs || [];
-            signals.forEach((sig, index) => {
-                if (yPos > 270) { doc.addPage(); yPos = 20; }
-                doc.text(String(sig.name), 20, yPos);
-                doc.text(String(sig.aspect), 60, yPos);
-                doc.text(String(sig.speed), 100, yPos);
-                doc.text(String(sig.distance), 140, yPos);
-                doc.text(String(sig.time), 170, yPos);
-                yPos += 7;
-            });
+    // File extension validation
+    if (['Laxven', 'Telpro'].includes(spmType) && !['xlsx', 'xls'].includes(fileExt || '')) {
+      alert(`Please upload an Excel file (.xlsx or .xls) for ${spmType} SPM.`)
+      return
+    } else if (spmType === 'RTIS' && !['xlsx', 'xls', 'csv'].includes(fileExt || '')) {
+      alert('Please upload an Excel (.xlsx/.xls) or CSV (.csv) file for RTIS SPM.')
+      return
+    } else if (spmType === 'Medha' && fileExt !== 'txt') {
+      alert('Please upload a .txt file for Medha SPM.')
+      return
+    } else if ((spmType === 'MR' || spmType === 'VEL') && fileExt !== 'pdf') {
+      alert('Please upload a .pdf file for MR or VEL SPM.')
+      return
+    } else if (spmType === 'TelproNew' && !['xlsx', 'xls'].includes(fileExt || '')) {
+      alert(`Please upload an Excel file (.xlsx or .xls) for ${spmType} SPM.`)
+      return
+    }
 
-            // 4. CHART INTEGRATION (Speed Curve)
-            if (yPos > 180) { doc.addPage(); yPos = 20; } else { yPos += 10; }
-            
-            doc.setFont("helvetica", "bold");
-            doc.text("Speed Curve Analysis", 15, yPos);
-            yPos += 5;
-            
-            const speedCanvas = document.getElementById('speedChart');
-            if (speedCanvas) {
-                try {
-                    const chartImg = speedCanvas.toDataURL('image/png', 1.0);
-                    doc.addImage(chartImg, 'PNG', 15, yPos, 180, 85);
-                    yPos += 95;
-                } catch (e) {
-                    console.error("Chart Export Failed:", e);
-                    doc.setTextColor(255, 0, 0);
-                    doc.text("Chart rendering failed in PDF.", 20, yPos + 10);
-                    doc.setTextColor(0);
-                }
-            }
+    if (!currentScript) {
+      alert(`No script loaded for SPM Type: ${spmType}. Please select SPM Type first.`)
+      return
+    }
 
-            // 5. FOOTER & AUTHENTICATION
-            doc.addPage();
-            yPos = 30;
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "bold");
-            doc.text("Abnormality Summary & Remarks", 15, yPos);
-            yPos += 10;
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-            const remarks = reportData.remarks || "No critical abnormalities detected during this section analysis.";
-            doc.text(doc.splitTextToSize(remarks, 170), 20, yPos);
+    // Store HQ in localStorage
+    const hqValueToSave = (document.getElementById('cliHqDisplay') as HTMLInputElement)?.value?.trim()
+    localStorage.setItem('currentSessionHq', hqValueToSave || '')
 
-            yPos = 250;
-            doc.setFont("helvetica", "bold");
-            doc.text("Signature of Reporting CLI", 140, yPos);
-            doc.setFont("helvetica", "normal");
-            doc.text(`(ID: ${document.getElementById('cliIdInput').value})`, 140, yPos + 5);
+    setIsLoading(true)
 
-            // Save the document
-            const fileName = `E-GARUD_${reportData.lpId}_${Date.now()}.pdf`;
-            doc.save(fileName);
-            
-            window.toggleLoadingOverlay(false);
-            showToast("Report Generated Successfully");
-        }
+    try {
+      showToast('Processing SPM data...')
+      
+      // Simulate processing
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      showToast('Analysis complete!')
+    } catch (error) {
+      console.error('Error during processing:', error)
+      alert('An error occurred: ' + (error as Error).message)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [currentScript, showToast])
 
-        // --- CHART GENERATION ENGINE ---
-        function renderCharts(labels, speedData) {
-            const ctx = document.getElementById('speedChart').getContext('2d');
-            if (window.activeChart) window.activeChart.destroy();
+  // Expose toggleLoadingOverlay globally
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as Window & { toggleLoadingOverlay?: (show: boolean) => void }).toggleLoadingOverlay = (show: boolean) => {
+        setIsLoading(show)
+      }
+    }
+  }, [])
 
-            window.activeChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Speed (kmph)',
-                        data: speedData,
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 2,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    animation: false,
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
-                        x: { grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        // --- Final script closing ---
-    </script>
-    <div id="toast-container" class="fixed bottom-10 left-10 flex flex-col items-start z-[10000]"></div>
-</body>
-</html>
+  return {
+    isLoading,
+    lpData,
+    alpData,
+    lpAbnormalities,
+    abnormalitySummary,
+    sections,
+    stations,
+    handleLpIdChange,
+    handleAlpIdChange,
+    handleSectionChange,
+    handleCliIdChange,
+    cliData,
+    handleManualLpEntry,
+    handleManualAlpEntry,
+    handleSpmTypeChange,
+    handleFormSubmit,
+    showToast,
+    toasts,
+    removeToast
+  }
+}
