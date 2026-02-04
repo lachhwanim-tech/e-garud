@@ -1,9 +1,9 @@
-async function sendDataToGoogleSheet(data) {
+async function sendDataToGoogleSheet(data, pdfBlob = null) {
     // 1. Primary Apps Script URL (Main Sheet - SPM ANALYSIS BANK)
-    const primaryAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbywegT1YIzktNtxvgdQvR7kPZ_5p6qdyGIdPT54LQYSQeeRm0bL41NTFVa8ic0Wydnn/exec';
+    const primaryAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbwjz5OJit3c6kA7G5IHenk5CYvkf9nFCiBOp7syEH0Pe7ne3uFN7D-i3seQvssHgGXk/exec';
 
     // 2. Secondary Apps Script URL (Other Sheet - OTHER DIVISION)
-    const otherAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbyUdRFxNRrKEWPJMTu1Mw6v49iEK_y4OSs9acRjR5Mgs43R1_uI9mq3WiqRitviGkTf/exec'; 
+    const otherAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbzQ1m7Pb6RrtVTOP1Js_fawI8lOs92YOSnuMlZlzXwwHrWZeS8TrFWUhgAPGSr6dvpX/exec'; 
 
     // --- UPDATED ALLOWED HQ LIST (Raipur Division) ---
     const ALLOWED_HQS = ['BYT', 'R', 'RSD', 'DBEC', 'DRZ', 'DURG'];
@@ -48,14 +48,25 @@ async function sendDataToGoogleSheet(data) {
             stop.cliRemark = cliRemarkInput ? cliRemarkInput.value.trim() : 'NIL'; 
         });
     }
+
+    // --- PDF Conversion to Base64 for Drive Upload ---
+    if (pdfBlob) {
+        const reader = new FileReader();
+        data.fileContent = await new Promise(resolve => {
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(pdfBlob);
+        });
+        data.fileName = `E-GARUD_${data.lpId || 'Trip'}_${Date.now()}.pdf`;
+        data.mimeType = "application/pdf";
+    }
     
-    // Deleting chart configs and images to keep payload size within Google Script limits
+    // Deleting heavy images to keep payload size within Google Script limits
     delete data.speedChartConfig;
     delete data.stopChartConfig;
     delete data.speedChartImage;
     delete data.stopChartImage;
 
-    // --- CRITICAL FIX: READ HQ FROM STORAGE ---
+    // --- READ HQ FROM STORAGE & ROUTING ---
     let storedHq = localStorage.getItem('currentSessionHq');
     if (!storedHq && document.getElementById('cliHqDisplay')) {
         storedHq = document.getElementById('cliHqDisplay').value;
@@ -64,21 +75,18 @@ async function sendDataToGoogleSheet(data) {
     let currentHq = storedHq ? storedHq.toString().trim().toUpperCase() : "UNKNOWN";
     data.cliHq = currentHq;
 
-    // --- ROUTING LOGIC ---
     let targetUrl = ALLOWED_HQS.includes(currentHq) ? primaryAppsScriptUrl : otherAppsScriptUrl;
 
     // --- SEND DATA ---
     try {
-        const response = await fetch(targetUrl, {
+        await fetch(targetUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-            },
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(data)
         });
-
         console.log('Data sent successfully to:', targetUrl);
-
+        return true;
     } catch (error) {
         console.error('Error sending data to Google Sheet:', error);
         alert('Network Error. Data could not be sent.');
