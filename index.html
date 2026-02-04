@@ -64,7 +64,7 @@ body {
 .container {
     width: 100%;
     max-width: 1200px;
-    background: transparent; /* Puraana look (Transparent) wapas aa gaya */
+    background: transparent; 
     padding: 25px;
     border-radius: 15px;
     position: relative;
@@ -92,12 +92,12 @@ h1 {
 h3, h4 {
     text-align: center;
     color: var(--text-muted);
-    font-weight: 400; /* h4 ke liye neeche bold kiya gaya hai */
+    font-weight: 400; 
     margin: 10px auto 25px auto;
     padding: 8px 15px;
     border-radius: 8px;
     max-width: 80%;
-    line-height: 1.5; /* Line-height behtar readability ke liye */
+    line-height: 1.5; 
     border: 1px solid var(--border-color);
     transition: background-color 0.5s;
 }
@@ -108,7 +108,7 @@ h3 {
 
 h4 {
     background-color: var(--h4-highlight-bg);
-    font-weight: 700; /* Bold karne ke liye */
+    font-weight: 700; 
 }
 
 h2 {
@@ -280,12 +280,11 @@ button[type="submit"]:hover {
 
 .train {
     position: absolute;
-    top: -15px; /* Adjust to place train on the track */
+    top: -15px; 
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    align-items: flex-end; /* Aligns coaches and engine at the bottom */
-    /* Counter-rotation to keep the train upright */
+    align-items: flex-end; 
     animation: stayUpright 4s linear infinite;
 }
 
@@ -342,7 +341,7 @@ button[type="submit"]:hover {
     background: var(--accent-color, #00aaff);
     border: 2px solid #fff;
     border-radius: 3px;
-    margin-left: -4px; /* Slight overlap */
+    margin-left: -4px; 
     position: relative;
 }
 /* Wheels for Coaches */
@@ -394,7 +393,7 @@ button[type="submit"]:hover {
     text-decoration: none;
     font-weight: bold;
     font-size: 0.9rem;
-    margin-right: 15px; /* Switch se doori ke liye */
+    margin-right: 15px; 
     transition: color 0.3s;
 }
 .top-right-nav-link:hover {
@@ -451,13 +450,13 @@ input:checked + .slider:before {
     transform: translateX(26px);
     content: "🌙";
 }
-/* styles.css में यह जोड़ें */
+
 .manual-link {
     display: block;
     text-align: center;
     margin-bottom: 15px;
     font-size: 1.1rem;
-    color: var(--accent-color); /* यह आपके थीम के अनुसार रंग अपना लेगा */
+    color: var(--accent-color); 
     text-decoration: none;
     font-weight: bold;
 }
@@ -466,11 +465,10 @@ input:checked + .slider:before {
 }
 /* --- About Us Toggle (Updated for Scrolling Page) --- */
 .about-us-toggle-container {
-    /* This makes the icon part of the page flow */
     position: relative;
     display: flex;
-    justify-content: flex-end; /* Pushes the icon to the right */
-    margin-top: 30px; /* Space above the icon */
+    justify-content: flex-end; 
+    margin-top: 30px; 
     padding-right: 10px;
 }
 
@@ -498,23 +496,21 @@ input:checked + .slider:before {
     align-items: center;
     font-size: 1.5rem;
     font-weight: bold;
-    font-family: 'Georgia', serif; /* More professional font for 'i' */
+    font-family: 'Georgia', serif; 
     cursor: pointer;
     border: 2px solid rgba(255, 255, 255, 0.7);
     transition: transform 0.3s ease;
-    /* Apply the animation here */
     animation: pulse-glow 3s infinite;
 }
 
 .about-us-icon:hover {
     transform: scale(1.1);
-    animation-play-state: paused; /* Pause the glow on hover */
+    animation-play-state: paused; 
 }
 
 .about-us-modal {
-    /* Changed to absolute to position relative to its container */
     position: absolute;
-    bottom: 120%; /* Position it directly above the icon */
+    bottom: 120%; 
     right: 0;
     background: var(--box-bg);
     border: 1px solid var(--border-color);
@@ -596,7 +592,7 @@ input:checked + .slider:before {
     position: fixed;
     top: 20px;
     right: 20px;
-    z-index: 2000; /* Sabse upar dikhega */
+    z-index: 2000; 
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -1164,11 +1160,9 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
                     input.value = val; // Set back
                     
                     if(cliDataMap[val]) {
-                        // Yahan change kiya hai: 'cliNameDisplay' ki jagah 'cliName'
                         document.getElementById('cliName').value = cliDataMap[val].name;
                         document.getElementById('cliHqDisplay').value = cliDataMap[val].hq;
                     } else {
-                        // Clear fields if ID doesn't match
                         document.getElementById('cliName').value = "";
                         document.getElementById('cliHqDisplay').value = "";
                     }
@@ -1221,8 +1215,6 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
                 });
             });
             // --- END: Force Uppercase for Manual Entry ---
-
-            // --- NOTE: Old "CLI Name Dropdown" logic has been removed as requested ---
 
             const spmTypeSelect = document.getElementById('spmType');
             let currentScript = null;
@@ -1304,20 +1296,17 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
             document.getElementById('spmForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // --- YEH LINE ADD KAREIN (HQ ko save karne ke liye) ---
+    // --- HQ ko save karne ke liye ---
     const hqValueToSave = document.getElementById('cliHqDisplay').value.trim();
     localStorage.setItem('currentSessionHq', hqValueToSave);
     console.log("HQ Saved for Session:", hqValueToSave);
-    // -----------------------------------------------------
 
-    // ... baaki purana code waisa hi rahega ...
-                // --- NEW: Submit Validation for CLI ID ---
+                // --- Submit Validation for CLI ID ---
                 const cliIdVal = document.getElementById('cliIdInput').value;
                 if(!cliIdVal) {
                     alert("Please enter a valid CLI ID.");
                     return;
                 }
-                // --- End Validation ---
 
                 const spmType = document.getElementById('spmType').value;
                 const spmFile = document.getElementById('spmFile').files[0];
@@ -1357,11 +1346,9 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
                 }
 
                 // --- 3. UPLOAD AND ANALYZE ---
-                // Show Loading Overlay
                 document.getElementById('loadingOverlay').style.display = 'flex';
 
                 try {
-                    // A. Attempt to upload/notify Google
                     console.log("Calling uploadDataAndFileToGoogle...");
                     const uploadResult = await uploadDataAndFileToGoogle();
                     
@@ -1379,7 +1366,6 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
                         cugData = await parseCugFile(cugFile);
                     }
 
-                    // Check if the specific analysis function exists
                     if (typeof analyzeSPMData === 'function') {
                          await analyzeSPMData(spmFile, cugData); 
                     } else if (typeof processLaxvenData === 'function' && spmType === 'Laxven') {
@@ -1388,7 +1374,6 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
                          await processMedhaData(spmFile, cugData);
                     } else {
                          console.log("Looking for specific analysis function for: " + spmType);
-                         
                          if(window.analyzeData) {
                              await window.analyzeData(spmFile, cugData);
                          } else {
@@ -1410,7 +1395,6 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
         }
     });
 
-    // This script should be at the end of the body
     document.addEventListener('DOMContentLoaded', function() {
         const aboutUsToggle = document.getElementById('aboutUsToggle');
         const aboutUsModal = document.getElementById('aboutUsModal');
@@ -1421,7 +1405,6 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
             });
         }
 
-        // Close the modal if the user clicks anywhere outside of the modal content and the icon
         window.addEventListener('click', function(event) {
             if (!aboutUsModal.contains(event.target) && !aboutUsToggle.contains(event.target)) {
                 aboutUsModal.classList.remove('show');
@@ -1431,7 +1414,7 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
     
     function showToast(message) {
         const container = document.getElementById('toast-container');
-        if (!container) return; // Agar container nahi hai to kuch na kare
+        if (!container) return; 
 
         const toast = document.createElement('div');
         toast.className = 'toast-message';
@@ -1439,25 +1422,20 @@ console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.")
 
         container.appendChild(toast);
 
-        // Animation ke saath dikhane ke liye
         setTimeout(() => {
             toast.classList.add('show');
         }, 10);
 
-        // Message ko 4 second ke baad gayab karne ke liye
         setTimeout(() => {
             toast.classList.remove('show');
-            // Animation poora hone ke baad element ko delete kar dega
             toast.addEventListener('transitionend', () => toast.remove());
         }, 4000);
     }
 
-    // Aapka baaki ka Javascript code yahan se shuru hoga...
     window.toggleLoadingOverlay = function(show) {
          document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
     };
 </script>
     <div id="toast-container"></div>
 </body>
-
 </html>
