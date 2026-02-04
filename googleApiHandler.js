@@ -1,5 +1,5 @@
-const PRIMARY_URL = 'https://script.google.com/macros/s/AKfycbwDHeFaudfWxUot5_8OZRcsNU937ArYxps6I1bLK79WR28ph5u8WyCI9PHS3CXi1PyL/exec';
-const OTHER_URL = 'https://script.google.com/macros/s/AKfycbwVYGVhHpdzbeoctKzWtIjm2TohJwf-T8o38LPkWaaqcDLojJtpJlTLdhAyVz-aGOpm/exec';
+const PRIMARY_URL = 'https://script.google.com/macros/s/AKfycbxDDRsC4iG_HtprIM2YHXObVLNEVPYqNMFZcRLzKCKs-jtFMgFj7qX2XR8hz_B6mdf9/exec';
+const OTHER_URL = 'https://script.google.com/macros/s/AKfycbzHlr8zK1uYdq1tu2eLJoCxwbK-HB7RdXuerFS58LF6-xH1QCGvEM67pi2IFZr9zSZJ/exec';
 
 /**
  * Converts a file to a Base64 string.
