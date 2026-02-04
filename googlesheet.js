@@ -49,7 +49,7 @@ async function sendDataToGoogleSheet(data) {
         });
     }
     
-    // Charts delete karna zaroori hai JSON size kam rakhne ke liye
+    // Deleting chart configs and images to keep payload size within Google Script limits
     delete data.speedChartConfig;
     delete data.stopChartConfig;
     delete data.speedChartImage;
@@ -71,9 +71,8 @@ async function sendDataToGoogleSheet(data) {
     try {
         const response = await fetch(targetUrl, {
             method: 'POST',
-            // mode: 'no-cors' hataya gaya hai taaki server response mil sake 
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'text/plain;charset=utf-8'
             },
             body: JSON.stringify(data)
         });
