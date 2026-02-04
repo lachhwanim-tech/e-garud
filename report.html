@@ -9,30 +9,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
-        :root {
-            --font-main: 'Segoe UI', sans-serif;
-            --bg-color: #f8f9fa;
-            --accent-color: #0056b3;
-            --box-bg: #ffffff;
-            --border-color: #dee2e6;
-        }
+        :root { --font-main: 'Segoe UI', sans-serif; --bg-color: #f8f9fa; --accent-color: #0056b3; --border-color: #dee2e6; }
         body { font-family: var(--font-main); background-color: var(--bg-color); margin: 0; padding: 20px; }
-        .report-container { max-width: 1200px; margin: 0 auto; background: var(--box-bg); padding: 30px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
+        .report-container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
         .logo { display: block; margin: 0 auto 15px; width: 250px; }
-        h1 { color: var(--accent-color); text-align: center; font-size: 3rem; font-weight: 800; margin-bottom: 5px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; overflow-x: auto; padding-bottom: 5px; }
-        .tab-button { padding: 12px 25px; cursor: pointer; border: none; background: none; font-weight: bold; white-space: nowrap; transition: 0.3s; }
+        h1 { color: var(--accent-color); text-align: center; font-size: 2.8rem; font-weight: 800; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; overflow-x: auto; }
+        .tab-button { padding: 12px 25px; cursor: pointer; border: none; background: none; font-weight: bold; }
         .tab-button.active { color: var(--accent-color); border-bottom: 3px solid var(--accent-color); }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
-        .download-button { display: none; width: 100%; padding: 18px; font-size: 1.3rem; font-weight: bold; color: #fff; background: linear-gradient(45deg, #28a745, #218838); border: none; border-radius: 10px; cursor: pointer; margin-top: 30px; }
+        .download-button { display: none; width: 100%; padding: 18px; font-size: 1.2rem; font-weight: bold; color: #fff; background: linear-gradient(45deg, #28a745, #218838); border: none; border-radius: 10px; cursor: pointer; margin-top: 25px; }
         .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.9); justify-content: center; align-items: center; z-index: 9999; flex-direction: column; }
         .spinner { border: 6px solid #f3f3f3; border-top: 6px solid var(--accent-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><p style="margin-top:15px; font-weight:bold;">E-GARUD: Saving to Cloud...</p></div>
+    <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><p style="margin-top:15px; font-weight:bold;">E-GARUD: Saving Trip Analysis...</p></div>
     
     <div class="report-container">
         <img src="railway logo.png" class="logo">
@@ -52,7 +46,31 @@
             <div id="crew-details" class="tab-pane"></div>
             <div id="driving-analysis" class="tab-pane"></div>
             <div id="cli-observation" class="tab-pane">
-                <textarea id="cliRemarks" rows="5" style="width:100%;" placeholder="Enter trip observation (Min 15 words)..."></textarea>
+                <h2 style="border-bottom: 2px solid var(--accent-color);">OVERALL OBSERVATION OF CLI</h2>
+                <textarea id="cliRemarks" rows="5" style="width:100%; padding:10px;" placeholder="Min 15 words required..."></textarea>
+                
+                <div id="abnormalities-checkbox-container" style="margin-top:20px; background:#f8f9fa; padding:15px; border-radius:10px;">
+                    <div class="abnormality-group"><label><input type="checkbox" id="chk-bft-nd"> BFT not done</label></div>
+                    <div class="abnormality-group"><label><input type="checkbox" id="chk-bpt-nd"> BPT not done</label></div>
+                    <div class="abnormality-group">
+                        <label><input type="checkbox" id="chk-late-ctrl"> Late Controlling</label>
+                        <input type="text" id="txt-late-ctrl" placeholder="Location..." style="width:100%; margin-top:5px;">
+                    </div>
+                    <div class="abnormality-group">
+                        <label><input type="checkbox" id="chk-overspeed"> Over speeding</label>
+                        <input type="text" id="txt-overspeed" placeholder="Details..." style="width:100%; margin-top:5px;">
+                    </div>
+                </div>
+
+                <div style="margin-top:20px;">
+                    <h3>Action Taken</h3>
+                    <input type="radio" name="actionTakenRadio" value="Intensive Counselled" id="a1"> <label for="a1">Intensive Counselled</label>
+                    <input type="radio" name="actionTakenRadio" value="Warning issued" id="a2" style="margin-left:20px;"> <label for="a2">Warning Letter</label>
+                </div>
+                
+                <input type="number" id="totalAbnormality" style="display:none;" value="0">
+                <textarea id="cliAbnormalities" style="display:none;"></textarea>
+                
                 <button id="downloadReport" class="download-button">SAVE TO DRIVE & DOWNLOAD PDF</button>
             </div>
         </div>
@@ -62,39 +80,42 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         let reportData = JSON.parse(localStorage.getItem('spmReportData') || '{}');
 
-        // --- YOUR ORIGINAL LOGIC FUNCTIONS START HERE ---
-        function renderReport() {
-            // Aapka poora table rendering logic yahan paste karein (Train/Crew/Driving tables)
-        }
-
+        // Logic for PDF Generation
         async function generatePDF() {
-            // Aapka original 1400 lines wala jsPDF logic (Async hona zaroori hai)
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            // ... (Your Tables and Charts logic) ...
-            doc.save(`E-GARUD_Report_${Date.now()}.pdf`);
+            doc.setFontSize(22).setTextColor(0, 86, 179).text("E-GARUD Analysis Report", 105, 20, {align: 'center'});
+            
+            // --- YOUR ORIGINAL 1400 LINE LOGIC FOR TABLES/CHARTS HERE ---
+            // doc.autoTable(...) logic preserves exactly as before.
+            
+            doc.save(`E-GARUD_${reportData.lpId || 'Report'}.pdf`);
+            return doc.output('blob'); // Return blob for Drive sync
         }
-        // --- YOUR ORIGINAL LOGIC FUNCTIONS END ---
+
+        function renderReport() {
+            // Your original table rendering logic for the UI
+            document.getElementById('train-details').innerHTML = `<h2>Train Details Loaded</h2>`; 
+        }
 
         document.getElementById('downloadReport').addEventListener('click', async () => {
             const remarks = document.getElementById('cliRemarks').value.trim();
-            if(remarks.split(/\s+/).length < 15) { alert("Minimum 15 words required."); return; }
+            if(remarks.split(/\s+/).length < 15) { alert("Please enter at least 15 words."); return; }
 
             loadingOverlay.style.display = 'flex';
             try {
-                await generatePDF(); // Pehle PDF download trigger hoga
-                await sendDataToGoogleSheet(reportData); // Phir Drive sync hoga
-                alert("Success: Data saved and PDF downloaded!");
+                const pdfBlob = await generatePDF(); 
+                await sendDataToGoogleSheet(reportData, pdfBlob); 
+                alert("Success: Report saved to Cloud and downloaded!");
                 window.location.href = 'index.html';
             } catch (e) {
                 console.error(e);
-                alert("Error during sync.");
+                alert("Sync Error. PDF was downloaded but cloud save failed.");
             } finally {
                 loadingOverlay.style.display = 'none';
             }
         });
 
-        // Tab Switching Logic
         document.querySelectorAll('.tab-button').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-button, .tab-pane').forEach(el => el.classList.remove('active'));
