@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-GARUD | ई गरुड़</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Crew Driving Monitoring Sysytem</title>
+    <link href="styles.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -16,698 +15,1427 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
     <style>
-        :root {
-            --slate-bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --accent: #38bdf8;
-        }
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--slate-bg); 
-            color: #f8fafc; 
-            overflow-x: hidden; 
-        }
-        .glass-card { 
-            background: var(--card-bg); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 1.5rem; 
-        }
-        .input-modern { 
-            background: rgba(15, 23, 42, 0.8); 
-            border: 1px solid rgba(56, 189, 248, 0.2); 
-            color: white; 
-            border-radius: 0.75rem; 
-            padding: 0.8rem; 
-            width: 100%; 
-            transition: all 0.2s; 
-        }
-        .input-modern:focus { 
-            border-color: var(--accent); 
-            outline: none; 
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); 
-        }
-        .btn-analyze { 
-            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%); 
-            font-weight: 800; 
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-        }
-        .btn-analyze:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4); 
-        }
+/* --- 1. CSS Variables for Theming (Day/Night Mode) --- */
+:root {
+    --bg-gradient: linear-gradient(135deg, #0f172a, #1184f8);
+    --text-color: #f8fafc;
+    --text-muted: #cbd5e1;
+    --accent-color: #00aaff;
+    --accent-glow: rgba(0, 170, 255, 0.5);
+    --border-color: rgba(0, 170, 255, 0.3); 
+    --box-bg: rgba(20, 30, 48, 0.85);
+    --input-bg: #111827; 
+    --success-color: #22c55e;
+    --danger-color: #ef4444;
+    --font-main: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    --h3-highlight-bg: rgba(88, 28, 135, 0.3); /* Dark Purple Glow */
+    --h4-highlight-bg: rgba(17, 94, 89, 0.4);  /* Dark Teal Glow */
+}
+
+body.day-mode {
+    --bg-gradient: linear-gradient(135deg, #82f9bf, #f8f9fa);
+    --text-color: #0c0c0d;
+    --text-muted: #495057;
+    --accent-color: #0056b3;
+    --accent-glow: rgba(0, 86, 179, 0.3);
+    --border-color: rgba(0, 86, 179, 0.5); 
+    --box-bg: rgb(255, 255, 255);
+    --input-bg: #60caffc1;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --h3-highlight-bg: rgba(224, 242, 254, 0.8); /* Light Sky Blue */
+    --h4-highlight-bg: rgba(220, 252, 231, 0.8); /* Light Mint Green */
+}
+
+/* --- 2. General Body and Layout Styles --- */
+body {
+    font-family: var(--font-main);
+    background: var(--bg-gradient);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    transition: background 0.5s, color 0.5s;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    background: transparent; 
+    padding: 25px;
+    border-radius: 15px;
+    position: relative;
+}
+
+/* --- 3. Header and Logo --- */
+.logo {
+    display: block;
+    margin: 0 auto 15px auto;
+    width: 300px;
+    height: auto;
+    filter: drop-shadow(0 0 10px var(--accent-glow));
+}
+
+h1 {
+    color: var(--accent-color);
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px var(--accent-glow);
+}
+
+h3, h4 {
+    text-align: center;
+    color: var(--text-muted);
+    font-weight: 400; 
+    margin: 10px auto 25px auto;
+    padding: 8px 15px;
+    border-radius: 8px;
+    max-width: 80%;
+    line-height: 1.5; 
+    border: 1px solid var(--border-color);
+    transition: background-color 0.5s;
+}
+
+h3 {
+    background-color: var(--h3-highlight-bg);
+}
+
+h4 {
+    background-color: var(--h4-highlight-bg);
+    font-weight: 700; 
+}
+
+h2 {
+    color: var(--text-color);
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 8px;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+}
+
+/* --- 4. Form Sections and Boxes --- */
+.form-row {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.form-section {
+    flex: 1;
+}
+
+.box {
+    background: var(--box-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    transition: background 0.5s, border 0.5s;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* --- 5. Inputs, Selects, and Buttons --- */
+input[type="text"],
+input[type="datetime-local"],
+input[type="file"],
+select {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    color: var(--text-color);
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+input[readonly] {
+    background-color: rgba(0,0,0,0.2);
+    cursor: not-allowed;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(45deg, var(--accent-color), var(--success-color));
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.manual-entry-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.manual-entry-btn:hover {
+    filter: brightness(1.2);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* --- 6. Loading Spinner --- */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.loading-spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid var(--accent-color);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+/* === High-Tech Train Loader CSS === */
+
+.train-loader-container {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.track {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border: 5px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+}
+
+/* This arm rotates, carrying the train */
+.train-arm {
+    width: 200px;
+    height: 200px;
+    position: absolute;
+    animation: moveOnTrack 4s linear infinite;
+}
+
+/* Keyframes for the arm's rotation */
+@keyframes moveOnTrack {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.train {
+    position: absolute;
+    top: -15px; 
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: flex-end; 
+    animation: stayUpright 4s linear infinite;
+}
+
+/* Keyframes to keep the train from spinning */
+@keyframes stayUpright {
+    from { transform: translateX(-50%) rotate(0deg); }
+    to { transform: translateX(-50%) rotate(-360deg); }
+}
+
+/* Train Parts Styling */
+.engine {
+    position: relative;
+    margin-right: 5px;
+}
+
+.engine-body {
+    width: 60px;
+    height: 30px;
+    background: var(--danger-color, #ec0c0c);
+    border-radius: 5px 5px 0 0;
+    position: relative;
+    z-index: 2;
+}
+/* Wheels for Engine */
+.engine-body::before, .engine-body::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    width: 12px;
+    height: 12px;
+    background: #555;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+}
+.engine-body::before { left: 8px; }
+.engine-body::after { right: 8px; }
+
+
+.engine-cabin {
+    position: absolute;
+    width: 30px;
+    height: 25px;
+    background: var(--accent-color, #00aaff);
+    bottom: 30px;
+    right: 0;
+    border-radius: 5px 5px 0 0;
+    border: 2px solid #fff;
+    z-index: 1;
+}
+
+.coach {
+    width: 50px;
+    height: 28px;
+    background: var(--accent-color, #00aaff);
+    border: 2px solid #fff;
+    border-radius: 3px;
+    margin-left: -4px; 
+    position: relative;
+}
+/* Wheels for Coaches */
+.coach::before, .coach::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    width: 10px;
+    height: 10px;
+    background: #555;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+}
+.coach::before { left: 5px; }
+.coach::after { right: 5px; }
+
+/* Smoke Animation */
+.engine-smoke {
+    position: absolute;
+    top: -30px;
+    left: 10px;
+    display: flex;
+}
+.engine-smoke span {
+    display: block;
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: smokePuff 1s infinite;
+}
+.engine-smoke span:nth-child(2) { animation-delay: 0.2s; }
+.engine-smoke span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes smokePuff {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-20px) scale(2); opacity: 0; }
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* --- 7. Day/Night Toggle Switch --- */
+
+.top-right-nav-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-right: 15px; 
+    transition: color 0.3s;
+}
+.top-right-nav-link:hover {
+    color: var(--text-color);
+    text-decoration: underline;
+}
+
+.theme-switch-wrapper {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+}
+.theme-switch {
+    display: inline-block;
+    height: 34px;
+    position: relative;
+    width: 60px;
+}
+.theme-switch input {
+    display:none;
+}
+.slider {
+    background-color: #3c4a5f;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+}
+.slider:before {
+    background-color: #fff;
+    bottom: 4px;
+    content: "☀️";
+    height: 26px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+input:checked + .slider {
+    background-color: var(--accent-color);
+}
+input:checked + .slider:before {
+    transform: translateX(26px);
+    content: "🌙";
+}
+
+.manual-link {
+    display: block;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: var(--accent-color); 
+    text-decoration: none;
+    font-weight: bold;
+}
+.manual-link:hover {
+    text-decoration: underline;
+}
+/* --- About Us Toggle (Updated for Scrolling Page) --- */
+.about-us-toggle-container {
+    position: relative;
+    display: flex;
+    justify-content: flex-end; 
+    margin-top: 30px; 
+    padding-right: 10px;
+}
+
+/* New animation keyframes for the pulsing glow */
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 5px var(--accent-glow), 0 0 10px var(--accent-glow);
+    }
+    50% {
+        box-shadow: 0 0 20px var(--accent-glow), 0 0 30px var(--accent-glow);
+    }
+    100% {
+        box-shadow: 0 0 5px var(--accent-glow), 0 0 10px var(--accent-glow);
+    }
+}
+
+.about-us-icon {
+    background: var(--accent-color);
+    color: #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: 'Georgia', serif; 
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    transition: transform 0.3s ease;
+    animation: pulse-glow 3s infinite;
+}
+
+.about-us-icon:hover {
+    transform: scale(1.1);
+    animation-play-state: paused; 
+}
+
+.about-us-modal {
+    position: absolute;
+    bottom: 120%; 
+    right: 0;
+    background: var(--box-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    width: 400px;
+    max-width: 90vw;
+    max-height: 75vh;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+
+.about-us-modal.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.about-us-modal h2 {
+    color: var(--accent-color);
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 8px;
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.about-us-modal h3 {
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 0;
+    border: none;
+    background: none;
+    text-align: left;
+}
+
+.about-us-modal p, .about-us-modal li {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-color);
+}
+
+.about-us-modal ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 0;
+}
+
+.contributor-card {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.contributor-card h4 {
+    margin: 0 0 5px 0;
+    padding: 0;
+    font-size: 1rem;
+    color: var(--accent-color);
+    background: none;
+    border: none;
+    text-align: left;
+    max-width: 100%;
+}
+
+.contributor-card p {
+    margin: 0;
+}
+/* --- 8. Toast Notification Styles --- */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000; 
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast-message {
+    background: var(--box-bg);
+    color: var(--text-color);
+    padding: 15px 20px;
+    border-radius: 8px;
+    border-left: 5px solid var(--accent-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.5s ease-in-out;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Jab message dikhega */
+.toast-message.show {
+    opacity: 1;
+    transform: translateX(0);
+}
     </style>
 </head>
-<body class="p-4 lg:p-8 min-h-screen">
-    <div class="max-w-[1400px] mx-auto">
-        <header class="flex flex-col items-center mb-12 text-center">
-            <img src="railway logo.png" alt="Logo" class="w-20 mb-4 drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]">
-            <h1 class="text-5xl font-black tracking-tighter text-white uppercase italic">E-GARUD <span class="text-sky-400 font-normal lowercase italic">ई गरुड़</span></h1>
-            <p class="text-slate-200 text-sm font-bold mt-2 uppercase tracking-wider">(CREW FOOTPLATE ACTIVITY MONITORING SYSTEM)</p>
-            <p class="text-slate-400 text-xs font-semibold mt-1">Electrical (OP) Raipur, TELOC CELL S.E.C.Railway</p>
-        </header>
-
-        <form id="spmForm" class="space-y-8">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <div class="glass-card p-8 relative overflow-hidden border-t-4 border-sky-500">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-white uppercase tracking-tight">LP Details</h2>
-                        <button type="button" id="manualLpBtn" class="text-[10px] font-bold bg-sky-500/10 text-sky-400 px-3 py-1 rounded-full border border-sky-500/20 hover:bg-sky-500/30 transition-colors">MANUAL MODE</button>
+<body>
+    <div class="container">
+        <img src="railway logo.png" alt="Railway Logo" class="logo">
+        <div class="theme-switch-wrapper">
+            <label class="theme-switch" for="checkbox">
+               <a href="graph.html" target="_blank" class="top-right-nav-link">
+            Signal Wise Analysis
+        </a>
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider round"></div>
+        </label>
+    </div>
+        <h1>SANKET</h1>
+        <a href="manual.html" target="_blank" class="manual-link">
+           Need Help? View the User Manual
+         </a>
+        <h3>(SPM Analysis and Navigation KPA Extraction Tool)</h3>
+        
+        <h4>
+            (Designed and Developed by Electrical(OP) Raipur, TELOC CELL S.E.C.Railway)
+            <br>
+            (इलेक्ट्रिकल (ओपी), TELOC प्रकोष्ठ, रायपुर, द.पू.म. रेलवे द्वारा)
+        </h4>
+        
+        <form id="spmForm">
+            <div class="form-row">
+                <div class="form-section">
+                    <div class="section-header">
+                        <h2>LP DETAILS</h2>
+                        <button type="button" id="manualLpBtn" class="manual-entry-btn">MANNUAL ENTRY MODE</button>
                     </div>
-                    <div class="space-y-5">
-                        <div>
-                            <label for="lpId" class="text-[10px] font-bold text-slate-500 uppercase ml-1">LP ID Number</label>
-                            <input type="text" id="lpId" name="lpId" class="input-modern w-full rounded-xl p-4 text-sm" placeholder="Enter ID" required>
+                    <div class="box">
+                        <div class="form-group">
+                            <label for="lpId">LP ID</label>
+                            <input type="text" id="lpId" name="lpId" required>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">LP Name</label>
-                            <input type="text" id="lpName" name="lpName" class="input-modern w-full rounded-xl p-4 text-sm opacity-60" readonly>
+                        <div class="form-group">
+                            <label for="lpName">LP Name</label>
+                            <input type="text" id="lpName" name="lpName" readonly>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Designation</label>
-                                <input type="text" id="lpDesg" name="lpDesg" class="input-modern w-full rounded-xl p-4 text-sm opacity-60" readonly>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Group CLI</label>
-                                <input type="text" id="lpGroupCli" name="lpGroupCli" class="input-modern w-full rounded-xl p-4 text-sm opacity-60" readonly>
-                            </div>
+                        <div class="form-group">
+                            <label for="lpDesg">LP Designation</label>
+                            <input type="text" id="lpDesg" name="lpDesg" readonly>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">CUG Mobile</label>
-                            <input type="text" id="lpCugNumber" name="lpCugNumber" class="input-modern w-full rounded-xl p-4 text-sm opacity-60" readonly>
+                        <div class="form-group">
+                            <label for="lpGroupCli">LP Group CLI</label>
+                            <input type="text" id="lpGroupCli" name="lpGroupCli" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="lpCugNumber">LP CUG Number</label>
+                            <input type="text" id="lpCugNumber" name="lpCugNumber" readonly>
+                        </div>
+                    </div>
+
+                    <div id="lp-abnormalities-section" style="margin-top: 20px;">
+    <h2>Last 10 abnormalities with Action Taken</h2>
+    <div class="box" id="lp-abnormalities-list-container">
+        <p id="lp-abnormalities-list">Enter LP ID to view previous records.</p>
+    </div>
+</div>
+</div>
+                <div class="form-section">
+                    <div class="section-header">
+                        <h2>ALP DETAILS</h2>
+                        <button type="button" id="manualAlpBtn" class="manual-entry-btn">MANNUAL ENTRY MODE</button>
+                    </div>
+                    <div class="box">
+                        <div class="form-group">
+                            <label for="alpId">ALP ID</label>
+                            <input type="text" id="alpId" name="alpId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="alpName">ALP Name</label>
+                            <input type="text" id="alpName" name="alpName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="alpDesg">ALP Designation</label>
+                            <input type="text" id="alpDesg" name="alpDesg" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="alpGroupCli">ALP Group CLI</label>
+                            <input type="text" id="alpGroupCli" name="alpGroupCli" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="alpCugNumber">ALP CUG Number</label>
+                            <input type="text" id="alpCugNumber" name="alpCugNumber" readonly>
+                        </div>
+                    </div>
+                     <div id="lp-abnormality-summary-section" style="margin-top: 20px;">
+                        <h2>Historical Abnormality Profile</h2>
+                         <div class="box" id="lp-abnormality-summary-container">
+                            <ul id="lp-abnormality-summary-list" style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem;">
+                                <li style="margin-bottom: 5px;">BFT not done: <strong id="bft-not-done-count">0</strong></li>
+                                <li style="margin-bottom: 5px;">BPT not done: <strong id="bpt-not-done-count">0</strong></li>
+                                <li style="margin-bottom: 5px;">BFT not done as per rule: <strong id="bft-rule-count">0</strong></li>
+                                <li style="margin-bottom: 5px;">BPT not done as per rule: <strong id="bpt-rule-count">0</strong></li>
+                                <li style="margin-bottom: 5px;">Late Controlling: <strong id="late-controlling-count">0</strong></li>
+                                <li style="margin-bottom: 5px;">Overspeeding: <strong id="overspeeding-count">0</strong></li>
+                                <li style="margin-bottom: 5px;">Others Abnormalities: <strong id="others-abnormalities-count">0</strong></li>
+                            </ul>
+                             <p id="lp-abnormality-summary-message" style="margin-top: 10px; font-style: italic;"></p>
                         </div>
                     </div>
                 </div>
-
-                <div class="glass-card p-8 rounded-3xl relative overflow-hidden border-t-4 border-indigo-500">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-white uppercase tracking-tight">ALP Details</h2>
-                        <button type="button" id="manualAlpBtn" class="text-[10px] font-bold bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full border border-indigo-500/20 hover:bg-indigo-500/30 transition-colors">MANUAL MODE</button>
-                    </div>
-                    <div class="space-y-5">
-                        <div>
-                            <label for="alpId" class="text-[10px] font-bold text-slate-500 uppercase ml-1">ALP ID Number</label>
-                            <input type="text" id="alpId" name="alpId" class="input-modern w-full rounded-xl p-4 text-sm" placeholder="Enter ID" required>
+            </div>
+            <div class="form-row">
+                <div class="form-section">
+                    <h2>TRAIN DETAILS</h2>
+                    <div class="box">
+                        <div class="form-group">
+                            <label for="locoNumber">Loco Number</label>
+                            <input type="text" id="locoNumber" name="locoNumber" required>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">ALP Name</label>
-                            <input type="text" id="alpName" name="alpName" class="input-modern w-full rounded-xl p-4 text-sm opacity-60" readonly>
+                        <div class="form-group">
+                            <label for="trainNumber">Train Number</label>
+                            <input type="text" id="trainNumber" name="trainNumber" required>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">CUG Number</label>
-                            <input type="text" id="alpCugNumber" name="alpCugNumber" class="input-modern w-full rounded-xl p-4 text-sm opacity-60" readonly>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">ALP Group CLI</label>
-                            <input type="text" id="alpGroupCli" name="alpGroupCli" class="input-modern w-full rounded-xl p-4 text-sm opacity-60" readonly>
-                        </div>
-                    </div>
-                </div>
-                <div class="glass-card p-8 rounded-3xl relative overflow-hidden border-t-4 border-emerald-500">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                    <h2 class="text-xl font-bold text-white uppercase tracking-tight mb-6">Train & Section</h2>
-                    <div class="space-y-5">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Loco Number</label>
-                                <input type="text" id="locoNumber" name="locoNumber" class="input-modern w-full rounded-xl p-4 text-sm" required>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Train Number</label>
-                                <input type="text" id="trainNumber" name="trainNumber" class="input-modern w-full rounded-xl p-4 text-sm" required>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Block Section</label>
-                            <select id="section" name="section" class="input-modern w-full rounded-xl p-4 text-sm appearance-none cursor-pointer" required>
-                                <option value="" disabled selected>Select Section</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">From Station</label>
-                                <select id="fromSection" name="fromSection" class="input-modern w-full rounded-xl p-4 text-sm"></select>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">To Station</label>
-                                <select id="toSection" name="toSection" class="input-modern w-full rounded-xl p-4 text-sm"></select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Type of Rake</label>
-                            <select id="rakeType" name="rakeType" class="input-modern w-full rounded-xl p-4 text-sm" required>
+                        <div class="form-group">
+                            <label for="rakeType">Type of Rake</label>
+                            <select id="rakeType" name="rakeType" required>
+                                <option value="" disabled selected>Select Rake Type</option>
                                 <option value="GOODS">GOODS</option>
                                 <option value="COACHING">COACHING</option>
                                 <option value="MEMU">MEMU</option>
                             </select>
                         </div>
-                    </div>
-                </div>
-            </div> <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                <div class="glass-card p-8 rounded-3xl">
-                    <h2 class="text-lg font-bold text-slate-300 mb-6 uppercase tracking-wider flex items-center">
-                        <span class="mr-3">👤</span> Reporting CLI Info
-                    </h2>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="col-span-2">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">CLI ID</label>
-                            <input type="text" id="cliIdInput" name="cliIdInput" class="input-modern w-full rounded-xl p-4 text-sm" placeholder="Enter CLI ID" required>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">CLI Name</label>
-                            <input type="text" id="cliName" class="input-modern w-full rounded-xl p-4 text-sm opacity-60" readonly placeholder="Auto-fill">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">CLI HQ</label>
-                            <input type="text" id="cliHqDisplay" class="input-modern w-full rounded-xl p-4 text-sm opacity-60" readonly placeholder="Auto-fill">
-                        </div>
-                    </div>
-                </div>
-                <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Analysis From</label>
-                            <input type="datetime-local" id="fromDateTime" name="fromDateTime" class="input-modern w-full rounded-xl p-4 text-sm" required>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Analysis To</label>
-                            <input type="datetime-local" id="toDateTime" name="toDateTime" class="input-modern w-full rounded-xl p-4 text-sm" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card p-8 rounded-3xl flex flex-col justify-between">
-                    <div class="grid grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">SPM Vendor</label>
-                            <select id="spmType" name="spmType" class="input-modern w-full rounded-xl p-4 text-sm cursor-pointer" required>
-                                <option value="">Select SPM</option>
-                                <option value="Laxven">Laxven</option>
-                                <option value="Medha">Medha</option>
-                                <option value="Telpro">Telpro</option>
-                                <option value="MR">MR</option>
+                        <div class="form-group">
+                            <label for="maxPermissibleSpeed">Maximum Permissible Speed (kmph)</label>
+                            <select id="maxPermissibleSpeed" name="maxPermissibleSpeed" required>
+                                <option value="" disabled selected>Select Speed</option>
+                                <option value="40">40 kmph</option>
+                                <option value="45">45 kmph</option>
+                                <option value="50">50 kmph</option>
+                                <option value="55">55 kmph</option>
+                                <option value="60">60 kmph</option>
+                                <option value="65">65 kmph</option>
+                                <option value="70">70 kmph</option>
+                                <option value="75">75 kmph</option>
+                                <option value="80">80 kmph</option>
+                                <option value="85">85 kmph</option>
+                                <option value="90">90 kmph</option>
+                                <option value="95">95 kmph</option>
+                                <option value="100">100 kmph</option>
+                                <option value="105">105 kmph</option>
+                                <option value="110">110 kmph</option>
+                                <option value="115">115 kmph</option>
+                                <option value="120">120 kmph</option>
+                                <option value="125">125 kmph</option>
+                                <option value="129">129 kmph</option>
+                                <option value="130">130 kmph</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">SPM Data File</label>
-                            <input type="file" id="spmFile" name="spmFile" class="hidden" required>
-                            <label for="spmFile" class="input-modern w-full rounded-xl p-4 text-sm flex items-center justify-center cursor-pointer hover:bg-slate-700/50 transition-all">
-                                📁 Choose File
-                            </label>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h2>SECTION DETAILS</h2>
+                    <div class="box">
+                        <div class="form-group">
+                            <label for="section">Section</label>
+                            <select id="section" name="section" required>
+                                <option value="" disabled selected>Select Section</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fromSection">From Section</label>
+                            <select id="fromSection" name="fromSection" required>
+                                <option value="" disabled selected>Select From Station</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="toSection">To Section</label>
+                            <select id="toSection" name="toSection" required>
+                                <option value="" disabled selected>Select To Station</option>
+                            </select>
                         </div>
                     </div>
-                    <button type="submit" class="btn-analyze w-full py-6 rounded-2xl text-white font-black text-xl uppercase tracking-[0.2em] shadow-2xl transition-all active:scale-95">
-                        Launch Analysis Engine
-                    </button>
-                    <input type="file" id="cugFile" name="cugFile" class="hidden" accept=".csv">
                 </div>
             </div>
+            <div class="form-section">
+                <h2>ANALYSIS DETAILS</h2>
+                <div class="box">
+                    <div class="form-group">
+                        <label for="spmType">Type of SPM</label>
+                        <select id="spmType" name="spmType" required>
+                            <option value="" disabled selected>Select SPM Type</option>
+                            <option value="Laxven">Laxven</option>
+                            <option value="Medha">Medha</option>
+                            <option value="Telpro">Telpro</option>
+                            <option value="TelproNew">TelproNew</option>
+                            <option value="MR">MR</option>
+                            <option value="VEL">VEL</option>
+                            <option value="RTIS">RTIS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+    <label for="cliIdInput">CLI ID</label>
+    <input type="text" id="cliIdInput" name="cliIdInput" placeholder="Enter CLI ID" required>
+</div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12 pb-10">
-                <div class="glass-card p-8 rounded-3xl shadow-inner border-b-4 border-sky-500/30">
-                    <h3 class="text-sm font-black text-sky-400 mb-6 uppercase tracking-tighter italic border-b border-sky-500/10 pb-2 flex items-center">
-                        <span class="mr-2">📋</span> Recent Abnormalities (Last 10)
-                    </h3>
-                    <div id="lp-abnormalities-list" class="text-[11px] text-slate-400 space-y-3 max-h-48 overflow-y-auto pr-4 font-medium custom-scrollbar">
-                        Search LP ID to load history from database...
+<div class="form-group">
+    <label for="cliName">CLI NAME</label>
+    <input type="text" id="cliName" name="cliName" placeholder="Auto-filled" readonly>
+</div>
+
+<div class="form-group">
+    <label for="cliHqDisplay">CLI HQ</label>
+    <input type="text" id="cliHqDisplay" name="cliHqDisplay" placeholder="Auto-filled" readonly>
+</div>                    <div class="form-group">
+                        <label for="fromDateTime">From Date and Time</label>
+                        <input type="datetime-local" id="fromDateTime" name="fromDateTime" required>
                     </div>
-                </div>
-                <div class="glass-card p-8 rounded-3xl shadow-inner border-b-4 border-indigo-500/30">
-                    <h3 class="text-sm font-black text-indigo-400 mb-6 uppercase tracking-tighter italic border-b border-indigo-500/10 pb-2 flex items-center">
-                        <span class="mr-2">📊</span> Historical Analytics Summary
-                    </h3>
-                    <div class="grid grid-cols-3 gap-4" id="lp-abnormality-summary-list">
-                        <div class="bg-slate-900/80 p-4 rounded-2xl border border-white/5 text-center group hover:border-sky-500/30 transition-all">
-                            <span class="text-[9px] text-slate-500 block uppercase mb-1 font-bold">BFT Done</span>
-                            <span id="bft-not-done-count" class="text-3xl font-black text-white group-hover:text-sky-400 transition-colors">0</span>
-                        </div>
-                        <div class="bg-slate-900/80 p-4 rounded-2xl border border-white/5 text-center group hover:border-indigo-500/30 transition-all">
-                            <span class="text-[9px] text-slate-500 block uppercase mb-1 font-bold">Late Ctrl</span>
-                            <span id="late-controlling-count" class="text-3xl font-black text-white group-hover:text-indigo-400 transition-colors">0</span>
-                        </div>
-                        <div class="bg-slate-900/80 p-4 rounded-2xl border border-white/5 text-center group hover:border-emerald-500/30 transition-all">
-                            <span class="text-[9px] text-slate-500 block uppercase mb-1 font-bold">Over Speed</span>
-                            <span id="overspeeding-count" class="text-3xl font-black text-white group-hover:text-emerald-400 transition-colors">0</span>
-                        </div>
+                    <div class="form-group">
+                        <label for="toDateTime">To Date and Time</label>
+                        <input type="datetime-local" id="toDateTime" name="toDateTime" required>
                     </div>
-                    <p id="lp-abnormality-summary-message" class="text-[10px] italic text-slate-600 mt-4 text-center"></p>
+                    <div class="form-group">
+                        <label for="cugFile">Upload CUG.csv File</label>
+                        <input type="file" id="cugFile" name="cugFile" accept=".csv">
+                    </div>
+                    <div class="form-group">
+                        <label for="spmFile">Upload SPM File</label>
+                        <input type="file" id="spmFile" name="spmFile" accept=".xlsx,.xls,.csv,.txt,.pdf" required>
+                    </div>
+                    <button type="submit">ANALYZE THE SPM DATA</button>
                 </div>
             </div>
         </form>
+         <div class="about-us-toggle-container">
+        <div class="about-us-icon" id="aboutUsToggle">i</div>
+       <div class="about-us-modal" id="aboutUsModal">
+    <h2>About SANKET</h2>
+    <p>
+        <b>SANKET</b> (SPM Analysis and Navigation KPA Extraction Tool) is a sophisticated web application engineered to revolutionize the analysis of locomotive data recorder (SPM) files. Spearheaded by the Electrical (OP) department of SECR, Bilaspur, this tool automates the meticulous process of monitoring train operations, evaluating crew performance, and ensuring safety compliance.
+    </p>
+
+    <h3>Key Features</h3>
+    <ul>
+        <li><b>Universal SPM Compatibility:</b> Seamlessly processes data from a wide array of SPM systems, including Laxven, Medha, Telpro, MR, VEL, and RTIS.</li>
+        <li><b>Intelligent Anomaly Detection:</b> Automatically identifies and reports critical operational anomalies like overspeeding, wheel slip, and improper brake application.</li>
+        <li><b>Advanced Data Visualization:</b> Renders complex data into intuitive, interactive charts for clear interpretation of locomotive performance.</li>
+        <li><b>Automated Reporting & Logging:</b> Instantly generates comprehensive PDF reports and logs all findings to a centralized Google Sheet for robust record-keeping and trend analysis.</li>
+    </ul>
+
+    <div class="contributor-card">
+        <h3>The Development Team</h3>
+        
+        <h4>Visionary & Motivational Support</h4>
+        <p><b>Shri Masud Alam, Sr. DEE/OP/BSP</b><br>Provided the essential leadership and encouragement that propelled this project from concept to reality.</p>
+        
+        <h4 style="margin-top:15px;">Technical & Domain Expertise</h4>
+        <p><b>Shri N Ravichandran, CLI/BSP</b><br>Offered invaluable expert guidance on locomotive operations and data interpretation, ensuring the tool's accuracy and relevance.</p>
+        
+        <h4 style="margin-top:15px;">Strategic Guidance & Mentorship</h4>
+        <p><b>Shri Rajeev Soni, ADEE/OP/BSP</b><br>His strategic insights and dedicated mentorship were pivotal in navigating project challenges and shaping the tool's successful development.</p>
+
+        <h4 style="margin-top:15px;">Lead Developer & Architect</h4>
+        <p><b>Shri Mohammad Rustam Khan, Sr. ALP/BSP</b><br>Masterminded the core architecture, coding, and web design, transforming complex requirements into a functional and user-friendly application.</p>
+
+        <h4 style="margin-top:15px;">Data Management & Curation</h4>
+        <p><b>Shri Chandan Shah, Sr. ALP/BSP</b><br><b>Shri Rupesh Kumar Verma, TECH-1/BSP</b><br>Instrumental in arranging, structuring, and validating the vast datasets required for the tool's backend logic.</p>
     </div>
-
-    <canvas id="speedChart" class="hidden"></canvas>
-    <canvas id="stopChart" class="hidden"></canvas>
-    
-    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/95 backdrop-blur-2xl hidden flex-col items-center justify-center z-[9999]">
-        <div class="relative">
-            <div class="w-24 h-24 border-8 border-slate-800 rounded-full"></div>
-            <div class="w-24 h-24 border-8 border-sky-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0 shadow-[0_0_50px_rgba(56,189,248,0.3)]"></div>
-        </div>
-        <h2 class="text-sky-400 font-black mt-8 text-2xl tracking-[0.5em] animate-pulse uppercase italic">E-GARUD Decoding</h2>
-        <p class="text-slate-500 text-xs mt-2 uppercase tracking-widest font-bold">Processing Signal & Speed Data...</p>
+</div>
     </div>
-
-    <script>
-        // GLOBALS
-        let crewData = [];
-        let stationSignalData = [];
-        let cliDataMap = {};
-      // 1. DATA FETCHING (Drive CSV Integration)
-        async function fetchCrewDataFromGoogleSheet() {
-            const URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRCXMXkdxzxwCvZtN3uwLGQCmXqmadXbckJrWGtCqaw_ETO1Ci40WysmoqKVVPHpg_7_Exf_AmAxAjy/pub?gid=528051557&single=true&output=csv';
-            try {
-                const res = await fetch(URL);
-                const text = await res.text();
-                return new Promise(resolve => {
-                    Papa.parse(text, {
-                        header: true,
-                        skipEmptyLines: true,
-                        transformHeader: h => h.trim().toUpperCase(),
-                        complete: result => resolve(result.data)
-                    });
-                });
-            } catch(e) { 
-                console.error("Crew Fetch Error", e); 
-                return []; 
-            }
-        }
-
-        async function fetchLpAbnormalities(lpId) {
-            const listCont = document.getElementById('lp-abnormalities-list');
-            listCont.innerHTML = "Processing database...";
-            const URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5A-LI7taO45zhdBz1xdbFZx694C4OK1vpPSV6rVs5VXVpVjqIWuMZdVWKJaFcVIws5qC8ei1Gz9wg/pub?gid=0&single=true&output=csv';
-            try {
-                const res = await fetch(URL);
-                const text = await res.text();
-                const data = Papa.parse(text, {header:true, skipEmptyLines:true}).data;
-                const lpRecords = data.filter(r => r['LP ID'] === lpId);
-                
-                if(lpRecords.length === 0) { 
-                    listCont.innerHTML = "Safe Trip Profile: No prior abnormalities recorded."; 
-                    return; 
-                }
-                
-                listCont.innerHTML = lpRecords.slice(-10).reverse().map(r => `
-                    <div class="bg-slate-800/60 p-4 rounded-2xl border border-white/5 shadow-lg mb-2">
-                        <span class="text-sky-400 font-bold block mb-1 text-xs underline decoration-sky-500/30">${r.Timestamp}</span>
-                        <span class="text-slate-300 leading-relaxed font-semibold">${r.Abnormalities}</span>
+    <canvas id="speedChart" style="display: none;"></canvas>
+    <canvas id="stopChart" style="display: none;"></canvas>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="train-loader-container">
+            <div class="track"></div>
+            <div class="train-arm">
+                <div class="train">
+                    <div class="engine">
+                        <div class="engine-body"></div>
+                        <div class="engine-cabin"></div>
+                        <div class="engine-smoke">
+                            <span></span><span></span><span></span>
+                        </div>
                     </div>
-                `).join('');
+                    <div class="coach"></div>
+                    <div class="coach"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    // Global function to toggle loading overlay
+    window.toggleLoadingOverlay = function(show) {
+        document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+    };
 
-                // Update Trip Counters
-                document.getElementById('bft-not-done-count').innerText = lpRecords.filter(r => r.Abnormalities.includes('BFT')).length;
-                document.getElementById('late-controlling-count').innerText = lpRecords.filter(r => r.Abnormalities.includes('Controlling')).length;
-                document.getElementById('overspeeding-count').innerText = lpRecords.filter(r => r.Abnormalities.includes('Speed')).length;
-                
-                document.getElementById('lp-abnormality-summary-message').innerText = `Sync Complete: ${lpRecords.length} records processed for LP ${lpId}`;
-            } catch(e) { 
-                listCont.innerHTML = "System Error: History database unreachable."; 
+    function loadScript(src, callback) {
+        const existingScript = document.querySelector('script[data-spm-script]');
+        if (existingScript) existingScript.remove();
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.dataset.spmScript = true;
+        script.onload = callback;
+        script.onerror = () => {
+            alert(`Failed to load script: ${src}. Please ensure the script exists and try again.`);
+            window.toggleLoadingOverlay(false);
+        };
+        document.body.appendChild(script);
+    }
+
+    let crewData = [];
+    let stationSignalData = [];
+    // --- NEW: Global Variable for CLI Data ---
+    let cliDataMap = {}; 
+
+    const fetchCSV = async (filePath) => {
+        try {
+            const response = await fetch(filePath);
+            if (!response.ok) throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
+            const text = await response.text();
+            return new Promise((resolve) => {
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transform: (value, field) => value.trim(),
+                    complete: (result) => resolve(result.data),
+                });
+            });
+        } catch (error) {
+            console.error(`Error loading ${filePath}:`, error);
+            throw error;
+        }
+    };
+
+    // --- Fetch Crew Data from Google Sheet ---
+  async function fetchCrewDataFromGoogleSheet() {
+    const CREW_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRCXMXkdxzxwCvZtN3uwLGQCmXqmadXbckJrWGtCqaw_ETO1Ci40WysmoqKVVPHpg_7_Exf_AmAxAjy/pub?gid=528051557&single=true&output=csv';
+    try {
+        const response = await fetch(CREW_CSV_URL);
+        const text = await response.text();
+        return new Promise((resolve) => {
+            Papa.parse(text, {
+                header: true, skipEmptyLines: true,
+                transformHeader: (h) => h.trim().toUpperCase(),
+                complete: (result) => resolve(result.data)
+            });
+        });
+    } catch (error) {
+        console.error('Crew Fetch Error:', error);
+        return [];
+    }
+} 
+   async function fetchLpAbnormalities(lpId) {
+    const abnormalitiesListContainer = document.getElementById('lp-abnormalities-list');
+    const summaryList = document.getElementById('lp-abnormality-summary-list');
+    const summaryMessage = document.getElementById('lp-abnormality-summary-message');
+    abnormalitiesListContainer.innerHTML = 'Loading history...';
+    
+    const PRIMARY_BANK_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5A-LI7taO45zhdBz1xdbFZx694C4OK1vpPSV6rVs5VXVpVjqIWuMZdVWKJaFcVIws5qC8ei1Gz9wg/pub?gid=0&single=true&output=csv';
+
+    try {
+        const response = await fetch(PRIMARY_BANK_CSV);
+        const text = await response.text();
+        const results = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+        const lpRecords = results.filter(row => row['LP ID'] === lpId);
+
+        if (lpRecords.length === 0) {
+            abnormalitiesListContainer.innerHTML = 'No records found.';
+            return;
+        }
+
+        let counts = { bft: 0, bpt: 0, bftR: 0, bptR: 0, late: 0, speed: 0, other: 0 };
+        let listHtml = '<ul>';
+        lpRecords.slice(-10).reverse().forEach(r => {
+            const abn = r['Abnormalities'] || '';
+            if (abn.includes("BFT not done")) counts.bft++;
+            if (abn.includes("BPT not done")) counts.bpt++;
+            if (abn.includes("Late Controlling")) counts.late++;
+            if (abn.includes("Over speeding")) counts.speed++;
+            listHtml += `<li><strong>${r['Timestamp']}:</strong> ${abn}</li>`;
+        });
+        listHtml += '</ul>';
+
+        abnormalitiesListContainer.innerHTML = listHtml;
+        document.getElementById('bft-not-done-count').textContent = counts.bft;
+        document.getElementById('bpt-not-done-count').textContent = counts.bpt;
+        document.getElementById('late-controlling-count').textContent = counts.late;
+        document.getElementById('overspeeding-count').textContent = counts.speed;
+        summaryList.style.display = 'block';
+    } catch (e) { abnormalitiesListContainer.innerHTML = 'Error loading history.'; }
+}
+             
+    document.addEventListener('DOMContentLoaded', async () => {
+        // --- Theme Switcher Logic ---
+        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+        const currentTheme = localStorage.getItem('theme');
+
+        if (currentTheme) {
+            document.body.classList.add(currentTheme);
+            if (currentTheme === 'day-mode') {
+                toggleSwitch.checked = false;
+            } else {
+                toggleSwitch.checked = true;
+            }
+        } else {
+            document.body.classList.add('day-mode');
+             toggleSwitch.checked = false;
+        }
+
+        function switchTheme(e) {
+            if (e.target.checked) {
+                document.body.classList.remove('day-mode');
+                localStorage.setItem('theme', 'night-mode');
+            } else {
+                document.body.classList.add('day-mode');
+                localStorage.setItem('theme', 'day-mode');
             }
         }
 
-        // 2. DOMContentLoaded & Core Initialization
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Load Base Datasets
-            crewData = await fetchCrewDataFromGoogleSheet();
-            const SIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9Y1hcPadG8CzhtOHddc2XT013TJm9D7J7pZaWORapXpFFMoI4dpFp9PV21XNNk3UuSXFpBqU3KX5m/pub?gid=1398384533&single=true&output=csv';
-            
-            try {
-                const sigRes = await fetch(SIG_URL);
-                const sigText = await sigRes.text();
-                stationSignalData = Papa.parse(sigText, {
-                    header:true, 
-                    skipEmptyLines:true, 
-                    transformHeader:h=>h.trim().toUpperCase()
-                }).data;
-            } catch(e) { console.error("Signal Fetch Error", e); }
-          // 3. Section & Station Mapping Logic
-            const sectionSelect = document.getElementById('section');
-            const uniqueSections = [...new Set(stationSignalData.map(r => r['SECTION']))];
-            
-            uniqueSections.forEach(s => {
-                if(s) {
-                    const opt = document.createElement('option');
-                    opt.value = s;
-                    opt.innerText = s;
-                    sectionSelect.appendChild(opt);
-                }
-            });
+        toggleSwitch.addEventListener('change', switchTheme, false);
+        // --- End Theme Switcher Logic ---
 
-            sectionSelect.addEventListener('change', (e) => {
-                const selectedSection = e.target.value;
-                const fromS = document.getElementById('fromSection');
-                const toS = document.getElementById('toSection');
-                
-                fromS.innerHTML = '<option value="">-Select From-</option>';
-                toS.innerHTML = '<option value="">-Select To-</option>';
-                
-                const stations = [...new Set(stationSignalData
-                    .filter(r => r['SECTION'] === selectedSection)
-                    .map(r => r['STATION']))];
-                
-                stations.forEach(st => {
-                    const opt = document.createElement('option');
-                    opt.value = st;
-                    opt.innerText = st;
-                    fromS.appendChild(opt);
-                    toS.appendChild(opt.cloneNode(true));
-                });
-            });
-
-            // 4. LP ID Input Auto-fill Listener
-            document.getElementById('lpId').addEventListener('input', e => {
-                const id = e.target.value.toUpperCase();
-                e.target.value = id; // Force uppercase in UI
-                const rec = crewData.find(r => r['CREWID'] === id);
-                if(rec) {
-                    document.getElementById('lpName').value = rec['CREW NAME'] || '';
-                    document.getElementById('lpDesg').value = rec['DESG'] || '';
-                    document.getElementById('lpGroupCli').value = rec['CLI NAME'] || '';
-                    document.getElementById('lpCugNumber').value = rec['CUG NUMBER'] || '';
-                    fetchLpAbnormalities(id);
-                }
-            });
-
-            // 5. ALP ID Input Auto-fill Listener
-            document.getElementById('alpId').addEventListener('input', e => {
-                const id = e.target.value.toUpperCase();
-                e.target.value = id;
-                const rec = crewData.find(r => r['CREWID'] === id);
-                if(rec) {
-                    document.getElementById('alpName').value = rec['CREW NAME'] || '';
-                    document.getElementById('alpCugNumber').value = rec['CUG NUMBER'] || '';
-                    document.getElementById('alpGroupCli').value = rec['CLI NAME'] || '';
-                }
-            });
-
-            // 6. CLIMICRO.csv Loading for Reporting CLI
+        try {
+            // --- NEW: Fetch CLIMICRO.csv logic start ---
             fetch('CLIMICRO.csv')
-                .then(response => response.ok ? response.text() : null)
+                .then(response => {
+                    if(!response.ok) throw new Error("Could not load CLIMICRO.csv");
+                    return response.text();
+                })
                 .then(csvText => {
-                    if(csvText) {
-                        const lines = csvText.split('\n');
-                        for(let i=1; i<lines.length; i++) {
-                            const parts = lines[i].split(',');
+                    const lines = csvText.split('\n');
+                    for(let i=1; i<lines.length; i++) {
+                        const line = lines[i].trim();
+                        if(line) {
+                            const parts = line.split(','); 
                             if(parts.length >= 3) {
-                                cliDataMap[parts[0].trim().toUpperCase()] = {
-                                    name: parts[1].trim(),
-                                    hq: parts[2].trim()
-                                };
+                                const id = parts[0].trim().toUpperCase();
+                                const name = parts[1].trim();
+                                const hq = parts[2].trim();
+                                cliDataMap[id] = { name: name, hq: hq };
                             }
                         }
                     }
-                }).catch(err => console.warn("CLI Micro Database not found"));
-        });
+                    console.log("CLIMICRO data loaded:", Object.keys(cliDataMap).length + " entries.");
+                })
+                .catch(err => console.error("Error loading CLI data:", err));
+            // --- Fetch CLIMICRO.csv logic end ---
 
-        // 7. Manual Entry Mode Toggles
-        document.getElementById('manualLpBtn').addEventListener('click', () => {
-            ['lpName','lpDesg','lpGroupCli','lpCugNumber'].forEach(id => {
-                const el = document.getElementById(id);
-                el.readOnly = false;
-                el.classList.remove('opacity-60');
+            // --- NAYA DRIVE CSV CODE (3rd Change) ---
+crewData = await fetchCrewDataFromGoogleSheet();
+
+const SIGNAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9Y1hcPadG8CzhtOHddc2XT013TJm9D7J7pZaWORapXpFFMoI4dpFp9PV21XNNk3UuSXFpBqU3KX5m/pub?gid=1398384533&single=true&output=csv';
+
+const sigResponse = await fetch(SIGNAL_CSV_URL);
+const sigText = await sigResponse.text();
+
+// PapaParse ka use karke Drive se signal data load karna
+stationSignalData = Papa.parse(sigText, { 
+    header: true, 
+    skipEmptyLines: true,
+    transformHeader: (h) => h.trim().toUpperCase() 
+}).data;
+
+window.crewData = crewData;
+window.stationSignalData = stationSignalData;
+console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.");
+
+            const sectionSelect = document.getElementById('section');
+            const uniqueSections = [...new Set(stationSignalData.map(row => row['SECTION']))];
+            uniqueSections.forEach(section => {
+                const option = document.createElement('option');
+                option.value = section;
+                option.textContent = section;
+                sectionSelect.appendChild(option);
             });
-            showToast("LP Manual Entry Active");
-        });
 
-        document.getElementById('manualAlpBtn').addEventListener('click', () => {
-            ['alpName','alpCugNumber','alpGroupCli'].forEach(id => {
-                const el = document.getElementById(id);
-                el.readOnly = false;
-                el.classList.remove('opacity-60');
-            });
-            showToast("ALP Manual Entry Active");
-        });
-      // 8. CLI ID Auto-fill & HQ Display
-        const cliIdField = document.getElementById('cliIdInput');
-        if (cliIdField) {
-            cliIdField.addEventListener('input', (e) => {
-                const val = e.target.value.toUpperCase();
-                e.target.value = val;
-                if (cliDataMap[val]) {
-                    document.getElementById('cliName').value = cliDataMap[val].name;
-                    document.getElementById('cliHqDisplay').value = cliDataMap[val].hq;
-                } else {
-                    document.getElementById('cliName').value = "";
-                    document.getElementById('cliHqDisplay').value = "";
-                }
-            });
-        }
+            const fromSectionSelect = document.getElementById('fromSection');
+            const toSectionSelect = document.getElementById('toSection');
 
-        // 9. Analysis Loading Logic
-        window.toggleLoadingOverlay = function(show) {
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) overlay.style.display = show ? 'flex' : 'none';
-        };
-
-        // 10. Form Submission Engine
-        document.getElementById('spmForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const spmType = document.getElementById('spmType').value;
-            const spmFile = document.getElementById('spmFile').files[0];
-            const cugFile = document.getElementById('cugFile').files[0];
-
-            if (!spmType) { alert('Please select an SPM Type.'); return; }
-            if (!spmFile) { alert('Please upload an SPM file.'); return; }
-
-            // Enable Loader
-            window.toggleLoadingOverlay(true);
-
-            try {
-                // Save session HQ to local storage
-                const hqVal = document.getElementById('cliHqDisplay').value.trim();
-                localStorage.setItem('currentSessionHq', hqVal);
-
-                // Start Cloud Handshake (Notify Google Drive)
-                console.log("E-GARUD: Initiating Cloud Upload Handshake...");
-                if (window.uploadDataAndFileToGoogle) {
-                    const uploadResult = await uploadDataAndFileToGoogle();
-                    if (uploadResult.status === 'success') {
-                        showToast('Live Cloud Sync Enabled');
-                    } else if (uploadResult.status === 'skipped') {
-                        console.log("Upload notification skipped - Internal Mode");
-                    }
-                }
-
-                // Parse CUG Data if uploaded
-                let cugData = [];
-                if (cugFile) {
-                    cugData = await new Promise((resolve) => {
-                        Papa.parse(cugFile, {
-                            header: true,
-                            skipEmptyLines: true,
-                            complete: (res) => resolve(res.data)
-                        });
+            sectionSelect.addEventListener('change', (e) => {
+                const selectedSection = e.target.value;
+                fromSectionSelect.innerHTML = '<option value="" disabled selected>Select From Station</option>';
+                toSectionSelect.innerHTML = '<option value="" disabled selected>Select To Station</option>';
+                if (selectedSection) {
+                    const stations = [...new Set(stationSignalData
+                        .filter(row => row['SECTION'] === selectedSection)
+                        .map(row => row['STATION']))];
+                    stations.forEach(station => {
+                        const option = document.createElement('option');
+                        option.value = station;
+                        option.textContent = station;
+                        fromSectionSelect.appendChild(option);
+                        toSectionSelect.appendChild(option.cloneNode(true));
                     });
                 }
+            });
 
-                // Initialize Local Decoding Engine
-                console.log(`E-GARUD: Calling local parser for ${spmType}`);
-                
-                // Logic based on original analyzeSPMData function
-                if (typeof analyzeSPMData === 'function') {
-                    await analyzeSPMData(spmFile, cugData);
-                } else if (window.analyzeData) {
-                    await window.analyzeData(spmFile, cugData);
+            document.getElementById('lpId').addEventListener('input', (e) => {
+                const input = e.target;
+                let value = input.value.toUpperCase();
+                input.value = value.replace(/[^A-Z0-9]/g, '');
+                const lpId = e.target.value.trim();
+                const lpRecord = crewData.find(record => record['CREWID'] === lpId);
+                if (lpRecord) {
+                    document.getElementById('lpName').value = lpRecord['CREW NAME'] || '';
+                    document.getElementById('lpDesg').value = lpRecord['DESG'] || '';
+                    document.getElementById('lpGroupCli').value = lpRecord['CLI NAME'] || '';
+                    document.getElementById('lpCugNumber').value = lpRecord['CUG NUMBER'] || '';
+                    fetchLpAbnormalities(lpId);
                 } else {
-                    // Specific vendor parser fallback
-                    const parserName = `process${spmType}Data`;
-                    if (typeof window[parserName] === 'function') {
-                        await window[parserName](spmFile, cugData);
-                    } else {
-                        // Global analyze script link check
-                        if (typeof analyzeData === 'function') {
-                            await analyzeData(spmFile, cugData);
-                        } else {
-                            throw new Error(`Engine for ${spmType} vendor script is not loaded.`);
-                        }
-                    }
+                    document.getElementById('lpName').value = '';
+                    document.getElementById('lpDesg').value = '';
+                    document.getElementById('lpGroupCli').value = '';
+                    document.getElementById('lpCugNumber').value = '';
+                    fetchLpAbnormalities(null);
                 }
+            });
 
-            } catch (error) {
-                console.error('Critical Processing Error:', error);
-                alert('E-GARUD Engine Exception: ' + error.message);
-                window.toggleLoadingOverlay(false);
+            document.getElementById('alpId').addEventListener('input', (e) => {
+                const input = e.target;
+                let value = input.value.toUpperCase();
+                input.value = value.replace(/[^A-Z0-9]/g, '');
+                const alpId = e.target.value.trim();
+                const alpRecord = crewData.find(record => record['CREWID'] === alpId);
+                if (alpRecord) {
+                    document.getElementById('alpName').value = alpRecord['CREW NAME'] || '';
+                    document.getElementById('alpDesg').value = alpRecord['DESG'] || '';
+                    document.getElementById('alpGroupCli').value = alpRecord['CLI NAME'] || '';
+                    document.getElementById('alpCugNumber').value = alpRecord['CUG NUMBER'] || '';
+                } else {
+                    document.getElementById('alpName').value = '';
+                    document.getElementById('alpDesg').value = '';
+                    document.getElementById('alpGroupCli').value = '';
+                    document.getElementById('alpCugNumber').value = '';
+                }
+            });
+
+            // --- NEW: CLI ID Auto-Fill Logic ---
+            const cliIdInput = document.getElementById('cliIdInput');
+            if(cliIdInput) {
+                cliIdInput.addEventListener('input', (e) => {
+                    const input = e.target;
+                    let val = input.value.toUpperCase(); // Force Uppercase
+                    input.value = val; // Set back
+                    
+                    if(cliDataMap[val]) {
+                        document.getElementById('cliName').value = cliDataMap[val].name;
+                        document.getElementById('cliHqDisplay').value = cliDataMap[val].hq;
+                    } else {
+                        document.getElementById('cliName').value = "";
+                        document.getElementById('cliHqDisplay').value = "";
+                    }
+                });
             }
-        });
-      // 11. Toast Notification Logic
-        function showToast(message) {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-
-            const toast = document.createElement('div');
-            // Dashboard-consistent modern toast styling
-            toast.className = "glass-card bg-slate-800/90 text-sky-400 border border-sky-500/30 px-6 py-4 rounded-2xl shadow-2xl mb-4 transform transition-all duration-500 translate-x-0 opacity-100 flex items-center gap-3";
-            toast.style.minWidth = "250px";
-            toast.innerHTML = `<span class="text-xl">✅</span> <span class="font-bold tracking-tight">${message}</span>`;
-
-            container.appendChild(toast);
-
-            // Animate out after 4 seconds
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100px)';
-                setTimeout(() => toast.remove(), 500);
-            }, 4000);
-        }
-
-        // 12. Global PDF Report Engine
-        async function generatePDF(reportData) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-
-            // Setup Dashboard Colors for PDF
-            const navyBlue = [15, 23, 42]; // #0f172a
-            const skyBlue = [56, 189, 248]; // #38bdf8
-
-            // Professional Report Header
-            doc.setFillColor(...navyBlue);
-            doc.rect(0, 0, 210, 45, 'F');
+            // --- End CLI ID Logic ---
             
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(24);
-            doc.setFont("helvetica", "bold");
-            doc.text("E-GARUD ANALYTICS REPORT", 105, 18, { align: 'center' });
-            
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text("(CREW FOOTPLATE ACTIVITY MONITORING SYSTEM)", 105, 26, { align: 'center' });
-            
-            doc.setDrawColor(...skyBlue);
-            doc.setLineWidth(0.8);
-            doc.line(30, 32, 180, 32);
-            
-            doc.setFontSize(9);
-            doc.text(`Raipur Division | Electrical (OP) | Generated: ${new Date().toLocaleString()}`, 105, 38, { align: 'center' });
+            // --- MANUAL ENTRY BUTTON LOGIC ---
+            const manualLpBtn = document.getElementById('manualLpBtn');
+            const manualAlpBtn = document.getElementById('manualAlpBtn');
 
-            // Trip Summary Section
-            let yPos = 58;
-            doc.setTextColor(...navyBlue);
-            doc.setFontSize(14);
-            doc.setFont("helvetica", "bold");
-            doc.text("Trip Summary", 15, yPos);
-            
-            yPos += 4;
-            doc.setDrawColor(226, 232, 240); // Slate-200
-            doc.setLineWidth(0.3);
-            doc.line(15, yPos, 195, yPos);
-            
-            yPos += 10;
-            const summaryTable = [
-                ["LP Name:", reportData.lpName || 'N/A', "LP ID:", reportData.lpId || 'N/A'],
-                ["ALP Name:", reportData.alpName || 'N/A', "ALP ID:", reportData.alpId || 'N/A'],
-                ["Loco Number:", reportData.locoNumber || 'N/A', "Train Number:", reportData.trainNumber || 'N/A'],
-                ["Section:", reportData.section || 'N/A', "Rake Type:", reportData.rakeType || 'N/A']
+            const lpFields = [
+                document.getElementById('lpName'),
+                document.getElementById('lpDesg'),
+                document.getElementById('lpGroupCli'),
+                document.getElementById('lpCugNumber')
             ];
 
-            doc.setFontSize(10);
-            summaryTable.forEach(row => {
-                doc.setFont("helvetica", "bold");
-                doc.text(row[0], 20, yPos);
-                doc.setFont("helvetica", "normal");
-                doc.text(String(row[1]), 55, yPos);
-                
-                doc.setFont("helvetica", "bold");
-                doc.text(row[2], 110, yPos);
-                doc.setFont("helvetica", "normal");
-                doc.text(String(row[3]), 145, yPos);
-                yPos += 8;
+            const alpFields = [
+                document.getElementById('alpName'),
+                document.getElementById('alpDesg'),
+                document.getElementById('alpGroupCli'),
+                document.getElementById('alpCugNumber')
+            ];
+            
+            manualLpBtn.addEventListener('click', () => {
+                lpFields.forEach(field => {
+                    field.readOnly = false;
+                });
+                document.getElementById('lpName').focus();
             });
-          // 13. Signal Analysis Grid in PDF
-            yPos += 5;
-            doc.setTextColor(...navyBlue);
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "bold");
-            doc.text("Signal Operational Logs", 15, yPos);
             
-            yPos += 6;
-            // Table Header Bar
-            doc.setFillColor(241, 245, 249);
-            doc.rect(15, yPos, 180, 8, 'F');
-            doc.setFontSize(8);
-            doc.text("Signal Name", 20, yPos + 5);
-            doc.text("Aspect", 65, yPos + 5);
-            doc.text("Speed (Kmph)", 100, yPos + 5);
-            doc.text("Distance (m)", 140, yPos + 5);
-            doc.text("Time", 175, yPos + 5);
+            manualAlpBtn.addEventListener('click', () => {
+                alpFields.forEach(field => {
+                    field.readOnly = false;
+                });
+                document.getElementById('alpName').focus();
+            });
+            // --- END MANUAL ENTRY LOGIC ---
             
-            yPos += 12;
-            doc.setFont("helvetica", "normal");
-            const logs = reportData.signalLogs || [];
-            logs.forEach((log) => {
-                if (yPos > 275) { 
-                    doc.addPage(); 
-                    yPos = 25; 
-                    doc.setFillColor(241, 245, 249);
-                    doc.rect(15, yPos - 10, 180, 8, 'F');
-                    doc.text("Signal Name", 20, yPos - 5);
-                    doc.text("Aspect", 65, yPos - 5);
-                    doc.text("Speed", 100, yPos - 5);
-                    doc.text("Distance", 140, yPos - 5);
-                    doc.text("Time", 175, yPos - 5);
+            // --- START: Force Uppercase for Manual Entry ---
+            const allManualFields = [...lpFields, ...alpFields];
+
+            allManualFields.forEach(field => {
+                field.addEventListener('input', () => {
+                    const start = field.selectionStart;
+                    const end = field.selectionEnd;
+                    field.value = field.value.toUpperCase();
+                    field.setSelectionRange(start, end);
+                });
+            });
+            // --- END: Force Uppercase for Manual Entry ---
+
+            const spmTypeSelect = document.getElementById('spmType');
+            let currentScript = null;
+
+           spmTypeSelect.addEventListener('change', (e) => {
+                const spmType = e.target.value;
+                const fileInput = document.getElementById('spmFile');
+
+                if (spmType === 'Medha') {
+                    fileInput.accept = '.txt';
+                } else if (spmType === 'MR' || spmType === 'VEL') {
+                    fileInput.accept = '.pdf';
+                } else if (spmType === 'RTIS') {
+                    fileInput.accept = '.xlsx,.xls,.csv';
+                } else if (spmType === 'TelproNew') { 
+                    fileInput.accept = '.xlsx,.xls';
+                } else {
+                    fileInput.accept = '.xlsx,.xls,.csv';
                 }
-                doc.text(String(log.name), 20, yPos);
-                doc.text(String(log.aspect), 65, yPos);
-                doc.text(String(log.speed), 100, yPos);
-                doc.text(String(log.distance), 140, yPos);
-                doc.text(String(log.time), 175, yPos);
-                yPos += 6.5;
+
+                if (spmType) {
+                    const scriptFile = `${spmType}.js`;
+                    loadScript(scriptFile, () => {
+                        console.log(`${scriptFile} loaded successfully`);
+                        currentScript = scriptFile;
+                    });
+                }
             });
 
-            // 14. Chart Export to PDF
-            if (yPos > 190) { doc.addPage(); yPos = 30; } else { yPos += 15; }
-            
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.text("Speed Curve Analysis", 15, yPos);
-            
-            yPos += 5;
-            const speedCanvas = document.getElementById('speedChart');
-            if (speedCanvas) {
+            const parseCugFile = (file) => {
+                return new Promise((resolve, reject) => {
+                    Papa.parse(file, {
+                        header: true,
+                        skipEmptyLines: true,
+                        transform: (value) => value.trim(),
+                        complete: (result) => {
+                            console.log('Raw CUG Data from upload:', result.data);
+                            const processedData = result.data.map(call => {
+                                const startDateTimeStr = call['Start Date & Time']?.trim();
+                                const endDateTimeStr = call['End Date & Time']?.trim();
+                                const dateTimeRegex = /^(?:(\d{2})[-\/](\d{2})[-\/](\d{4})|(\d{4})[-\/](\d{2})[-\/](\d{2}))\s(\d{2}):(\d{2})(?::(\d{2}))?$/;
+                                const startMatch = startDateTimeStr?.match(dateTimeRegex);
+                                const endMatch = endDateTimeStr?.match(dateTimeRegex);
+                                if (startMatch && endMatch) {
+                                    let startDateTime, endDateTime;
+                                    const startSeconds = startMatch[9] || '00';
+                                    const endSeconds = endMatch[9] || '00';
+                                    if (startMatch[1]) { // DD-MM-YYYY
+                                        startDateTime = new Date(`${startMatch[3]}-${startMatch[2]}-${startMatch[1]}T${startMatch[7]}:${startMatch[8]}:${startSeconds}`);
+                                        endDateTime = new Date(`${endMatch[3]}-${endMatch[2]}-${endMatch[1]}T${endMatch[7]}:${endMatch[8]}:${endSeconds}`);
+                                    } else { // YYYY-MM-DD
+                                        startDateTime = new Date(`${startMatch[4]}-${startMatch[5]}-${startMatch[6]}T${startMatch[7]}:${startMatch[8]}:${startSeconds}`);
+                                        endDateTime = new Date(`${endMatch[4]}-${endMatch[5]}-${endMatch[6]}T${endMatch[7]}:${endMatch[8]}:${endSeconds}`);
+                                    }
+                                    return {
+                                        ...call,
+                                        startDateTime,
+                                        endDateTime,
+                                        duration: parseInt(call['Duration in Sec']) || 0,
+                                        'CUG MOBILE NO': call['CUG MOBILE NO']?.trim()
+                                    };
+                                } else {
+                                    console.warn('Invalid date format in CUG.csv:', { startDateTimeStr, endDateTimeStr });
+                                    return null;
+                                }
+                            }).filter(call => call && !isNaN(call.startDateTime.getTime()) && !isNaN(call.endDateTime.getTime()) && !isNaN(call.duration));
+                            
+                            console.log('Processed CUG Data from upload:', processedData);
+                            resolve(processedData);
+                        },
+                        error: (error) => {
+                            console.error('Error parsing CUG.csv:', error);
+                            reject(error);
+                        }
+                    });
+                });
+            };
+
+            document.getElementById('spmForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // --- HQ ko save karne ke liye ---
+    const hqValueToSave = document.getElementById('cliHqDisplay').value.trim();
+    localStorage.setItem('currentSessionHq', hqValueToSave);
+    console.log("HQ Saved for Session:", hqValueToSave);
+
+                // --- Submit Validation for CLI ID ---
+                const cliIdVal = document.getElementById('cliIdInput').value;
+                if(!cliIdVal) {
+                    alert("Please enter a valid CLI ID.");
+                    return;
+                }
+
+                const spmType = document.getElementById('spmType').value;
+                const spmFile = document.getElementById('spmFile').files[0];
+                const cugFile = document.getElementById('cugFile').files[0];
+
+                if (!spmType) {
+                    alert('Please select an SPM Type.');
+                    return;
+                }
+                if (!spmFile) {
+                    alert('Please upload an SPM file.');
+                    return;
+                }
+                const fileExt = spmFile.name.split('.').pop().toLowerCase();
+
+                // File Extension Validation
+                if (['Laxven', 'Telpro'].includes(spmType) && !['xlsx', 'xls'].includes(fileExt)) {
+                    alert(`Please upload an Excel file (.xlsx or .xls) for ${spmType} SPM.`);
+                    return;
+                } else if (spmType === 'RTIS' && !['xlsx', 'xls', 'csv'].includes(fileExt)) {
+                    alert('Please upload an Excel (.xlsx/.xls) or CSV (.csv) file for RTIS SPM.');
+                    return;
+                } else if (spmType === 'Medha' && fileExt !== 'txt') {
+                    alert('Please upload a .txt file for Medha SPM.');
+                    return;
+                } else if ((spmType === 'MR' || spmType === 'VEL') && fileExt !== 'pdf') {
+                    alert('Please upload a .pdf file for MR or VEL SPM.');
+                    return;
+                } else if (spmType === 'TelproNew' && !['xlsx', 'xls'].includes(fileExt)) {
+                    alert(`Please upload an Excel file (.xlsx or .xls) for ${spmType} SPM.`);
+                    return;
+                }
+
+                if (!currentScript) {
+                    alert(`No script loaded for SPM Type: ${spmType}. Please select SPM Type first.`);
+                    return;
+                }
+
+                // --- 3. UPLOAD AND ANALYZE ---
+                document.getElementById('loadingOverlay').style.display = 'flex';
+
                 try {
-                    const chartImage = speedCanvas.toDataURL('image/png', 1.0);
-                    doc.addImage(chartImage, 'PNG', 15, yPos, 180, 80);
-                    yPos += 90;
-                } catch (err) {
-                    doc.setTextColor(239, 68, 68);
-                    doc.text("Note: Speed graph rendering skipped due to data complexity.", 20, yPos + 10);
-                    doc.setTextColor(...navyBlue);
+                    console.log("Calling uploadDataAndFileToGoogle...");
+                    const uploadResult = await uploadDataAndFileToGoogle();
+                    
+                    console.log("Upload Result:", uploadResult);
+
+                    if (uploadResult.status === 'success') {
+                        showToast('File uploaded to Drive successfully.');
+                    } else if (uploadResult.status === 'skipped') {
+                        showToast('Drive Upload skipped. Processing locally...');
+                    }
+
+                    // B. START LOCAL ANALYSIS
+                    let cugData = [];
+                    if (cugFile) {
+                        cugData = await parseCugFile(cugFile);
+                    }
+
+                    if (typeof analyzeSPMData === 'function') {
+                         await analyzeSPMData(spmFile, cugData); 
+                    } else if (typeof processLaxvenData === 'function' && spmType === 'Laxven') {
+                         await processLaxvenData(spmFile, cugData);
+                    } else if (typeof processMedhaData === 'function' && spmType === 'Medha') {
+                         await processMedhaData(spmFile, cugData);
+                    } else {
+                         console.log("Looking for specific analysis function for: " + spmType);
+                         if(window.analyzeData) {
+                             await window.analyzeData(spmFile, cugData);
+                         } else {
+                             console.warn("Analysis function not found. Ensure " + spmType + ".js exports a processing function.");
+                         }
+                    }
+
+                } catch (error) {
+                    console.error('Error during processing:', error);
+                    alert('An error occurred: ' + error.message);
+                    document.getElementById('loadingOverlay').style.display = 'none';
                 }
-            }
+            });
 
-            // 15. Final Footer & Auth
-            if (yPos > 240) { doc.addPage(); yPos = 30; }
-            
-            yPos = 255;
-            doc.setDrawColor(200, 200, 200);
-            doc.line(15, yPos, 195, yPos);
-            
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "bold");
-            doc.text("Digitally Generated by E-GARUD Engine", 15, yPos + 8);
-            doc.text("Signature of Reporting CLI", 145, yPos + 8);
-            
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(8);
-            doc.text("This report is for monitoring purposes only. Subject to audit verification.", 15, yPos + 13);
-            doc.text(`CLI ID: ${document.getElementById('cliIdInput').value}`, 145, yPos + 13);
+        } catch (error) {
+            console.error('Error loading initial CSV files:', error);
+            alert('Failed to load CREW.csv or Station_Signal_Interdistant.csv. Ensure the files are available and correctly formatted.');
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    });
 
-            // Export Process
-            const safeFileName = `E-GARUD_${reportData.lpId || 'Report'}_${Date.now()}.pdf`;
-            doc.save(safeFileName);
-            
-            window.toggleLoadingOverlay(false);
-            showToast("Report Successfully Exported");
+    document.addEventListener('DOMContentLoaded', function() {
+        const aboutUsToggle = document.getElementById('aboutUsToggle');
+        const aboutUsModal = document.getElementById('aboutUsModal');
+
+        if (aboutUsToggle) {
+            aboutUsToggle.addEventListener('click', function() {
+                aboutUsModal.classList.toggle('show');
+            });
         }
 
-        // Closing the JS logic
-    </script>
+        window.addEventListener('click', function(event) {
+            if (!aboutUsModal.contains(event.target) && !aboutUsToggle.contains(event.target)) {
+                aboutUsModal.classList.remove('show');
+            }
+        });
+    });
     
-    <div id="toast-container" class="fixed bottom-8 left-8 flex flex-col items-start z-[99999]"></div>
+    function showToast(message) {
+        const container = document.getElementById('toast-container');
+        if (!container) return; 
 
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = message;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 4000);
+    }
+
+    window.toggleLoadingOverlay = function(show) {
+         document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+    };
+</script>
+    <div id="toast-container"></div>
 </body>
 </html>
