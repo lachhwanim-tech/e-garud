@@ -1,9 +1,9 @@
 async function sendDataToGoogleSheet(data) {
     // 1. Primary Apps Script URL (Main Sheet - SPM ANALYSIS BANK)
-    const primaryAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbxDDRsC4iG_HtprIM2YHXObVLNEVPYqNMFZcRLzKCKs-jtFMgFj7qX2XR8hz_B6mdf9/exec';
+    const primaryAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbywegT1YIzktNtxvgdQvR7kPZ_5p6qdyGIdPT54LQYSQeeRm0bL41NTFVa8ic0Wydnn/exec';
 
     // 2. Secondary Apps Script URL (Other Sheet - OTHER DIVISION)
-    const otherAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbzHlr8zK1uYdq1tu2eLJoCxwbK-HB7RdXuerFS58LF6-xH1QCGvEM67pi2IFZr9zSZJ/exec'; 
+    const otherAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbyUdRFxNRrKEWPJMTu1Mw6v49iEK_y4OSs9acRjR5Mgs43R1_uI9mq3WiqRitviGkTf/exec'; 
 
     // --- UPDATED ALLOWED HQ LIST (Raipur Division) ---
     const ALLOWED_HQS = ['BYT', 'R', 'RSD', 'DBEC', 'DRZ', 'DURG'];
