@@ -3,7 +3,7 @@ async function sendDataToGoogleSheet(data) {
     const primaryAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbwDHeFaudfWxUot5_8OZRcsNU937ArYxps6I1bLK79WR28ph5u8WyCI9PHS3CXi1PyL/exec';
 
     // 2. Secondary Apps Script URL (Other Sheet - OTHER DIVISION)
-    const otherAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbwVYGVhHpdzbeoctKzWtIjm2TohJwf-T8o38LPkWaaqcDLojJtpJlTLdhAyVz-aGOpm/exec'; 
+    const otherAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbzHlr8zK1uYdq1tu2eLJoCxwbK-HB7RdXuerFS58LF6-xH1QCGvEM67pi2IFZr9zSZJ/exec'; 
 
     // --- UPDATED ALLOWED HQ LIST (Raipur Division) ---
     const ALLOWED_HQS = ['BYT', 'R', 'RSD', 'DBEC', 'DRZ', 'DURG'];
