@@ -1009,24 +1009,7 @@ input:checked + .slider:before {
         summaryList.style.display = 'block';
     } catch (e) { abnormalitiesListContainer.innerHTML = 'Error loading history.'; }
 }
-                document.getElementById('bft-not-done-count').textContent = counts.bft_nd;
-                document.getElementById('bpt-not-done-count').textContent = counts.bpt_nd;
-                document.getElementById('bft-rule-count').textContent = counts.bft_rule;
-                document.getElementById('bpt-rule-count').textContent = counts.bpt_rule;
-                document.getElementById('late-controlling-count').textContent = counts.late_ctrl;
-                document.getElementById('overspeeding-count').textContent = counts.overspeed;
-                document.getElementById('others-abnormalities-count').textContent = counts.others;
-                summaryList.style.display = 'block';
-                summaryMessage.textContent = '';
-            }
-
-        } catch (error) {
-            console.error('Error fetching abnormalities:', error);
-            abnormalitiesListContainer.innerHTML = `<span style="color: var(--danger-color);">Could not fetch previous abnormality records. Error: ${error.message}</span>`;
-            summaryMessage.textContent = 'Error fetching summary data.';
-            summaryList.style.display = 'none';
-        }
-    }
+             
     document.addEventListener('DOMContentLoaded', async () => {
         // --- Theme Switcher Logic ---
         const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
