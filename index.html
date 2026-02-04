@@ -1083,16 +1083,24 @@ input:checked + .slider:before {
                 .catch(err => console.error("Error loading CLI data:", err));
             // --- Fetch CLIMICRO.csv logic end ---
 
-            console.log("Fetching Crew Data from Google Sheet...");
-            crewData = await fetchCrewDataFromGoogleSheet();
-            
-            console.log('Loaded CREW Data:', crewData);
-            
-            stationSignalData = await fetchCSV('Station_Signal_Interdistant.csv');
-            console.log('Loaded Station Signal Data:', stationSignalData);
+            // --- NAYA DRIVE CSV CODE (3rd Change) ---
+crewData = await fetchCrewDataFromGoogleSheet();
 
-            window.crewData = crewData;
-            window.stationSignalData = stationSignalData;
+const SIGNAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9Y1hcPadG8CzhtOHddc2XT013TJm9D7J7pZaWORapXpFFMoI4dpFp9PV21XNNk3UuSXFpBqU3KX5m/pub?gid=1398384533&single=true&output=csv';
+
+const sigResponse = await fetch(SIGNAL_CSV_URL);
+const sigText = await sigResponse.text();
+
+// PapaParse ka use karke Drive se signal data load karna
+stationSignalData = Papa.parse(sigText, { 
+    header: true, 
+    skipEmptyLines: true,
+    transformHeader: (h) => h.trim().toUpperCase() 
+}).data;
+
+window.crewData = crewData;
+window.stationSignalData = stationSignalData;
+console.log("E-GARUD: Drive se Crew aur Signal data successfully load ho gaya.");
 
             const sectionSelect = document.getElementById('section');
             const uniqueSections = [...new Set(stationSignalData.map(row => row['SECTION']))];
