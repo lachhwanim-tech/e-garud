@@ -16,31 +16,34 @@
     </script>
     <style>
 /* --- 1. CSS Variables for Theming (Day/Night Mode) --- */
+/* --- 1. CSS Variables for Raipur Royal Theme (Line 21-50) --- */
 :root {
-    --bg-gradient: linear-gradient(135deg, #450a0a, #1a0505); /* Deep Maroon Gradient */
-    --text-color: #fffaf0; /* Floral White (thoda off-white) */
-    --text-muted: #e5e7eb;
-    --accent-color: #fbbf24; /* Golden Yellow */
+    --bg-gradient: linear-gradient(135deg, #4c0519, #1a0505); /* Deep Royal Maroon */
+    --text-color: #fffaf0; /* Ivory White */
+    --text-muted: #fde68a; /* Light Gold for sub-text */
+    --accent-color: #fbbf24; /* Solid Gold */
     --accent-glow: rgba(251, 191, 36, 0.4);
-    --border-color: rgba(251, 191, 36, 0.3); 
-    --box-bg: rgba(69, 10, 10, 0.6); /* Semi-transparent Maroon */
+    --border-color: rgba(251, 191, 36, 0.4); 
+    --box-bg: rgba(45, 10, 10, 0.8);
     --input-bg: #2d0606; 
     --success-color: #22c55e;
     --danger-color: #ef4444;
-    --h3-highlight-bg: rgba(251, 191, 36, 0.15); /* Subtle Gold Glow */
-    --h4-highlight-bg: rgba(251, 191, 36, 0.2); 
+    --font-main: 'Segoe UI', 'Georgia', serif;
+    --h3-highlight-bg: rgba(251, 191, 36, 0.1); 
+    --h4-highlight-bg: rgba(153, 27, 27, 0.4);
 }
+
 body.day-mode {
-    --bg-gradient: linear-gradient(135deg, #fdf4ff, #fff7ed);
-    --text-color: #450a0a;
-    --text-muted: #6b2121;
-    --accent-color: #991b1b; /* Rich Red/Maroon */
+    --bg-gradient: linear-gradient(135deg, #fffbeb, #fef3c7); /* Cream/Off-white */
+    --text-color: #450a0a; /* Dark Maroon Text */
+    --text-muted: #78350f;
+    --accent-color: #991b1b; /* Crimson Red */
     --accent-glow: rgba(153, 27, 27, 0.2);
     --border-color: rgba(153, 27, 27, 0.4); 
     --box-bg: #ffffff;
     --input-bg: #fff1f1;
-    --h3-highlight-bg: rgba(254, 243, 199, 0.8);
-    --h4-highlight-bg: rgba(254, 226, 226, 0.8);
+    --h3-highlight-bg: rgba(254, 243, 199, 0.9);
+    --h4-highlight-bg: rgba(254, 226, 226, 0.9);
 }
 
 /* --- 2. General Body and Layout Styles --- */
@@ -78,10 +81,12 @@ body {
 h1 {
     color: var(--accent-color);
     text-align: center;
-    font-size: 3.5rem; /* Thoda bada size */
+    font-size: 3.5rem;
     font-weight: 800;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow);
-    font-family: 'Georgia', serif; /* Classic font */
+    margin-bottom: 5px;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6), 0 0 15px var(--accent-glow);
+    font-family: 'Georgia', serif; /* Royal Font */
 }
 
 h3, h4 {
@@ -107,11 +112,11 @@ h4 {
 }
 
 h2 {
-    color: var(--text-color);
+    color: var(--accent-color); /* Section headers also in gold */
     border-bottom: 2px solid var(--accent-color);
-    padding-bottom: 8px;
-    font-size: 1.4rem;
-    margin-bottom: 20px;
+    padding-bottom: 5px;
+    font-size: 1.3rem;
+    text-transform: uppercase;
 }
 
 /* --- 4. Form Sections and Boxes --- */
@@ -172,23 +177,25 @@ input[readonly] {
     cursor: not-allowed;
 }
 
+/* --- Button & Inputs Update --- */
 button[type="submit"] {
     width: 100%;
     padding: 15px;
     font-size: 1.2rem;
     font-weight: bold;
     color: #fff;
-    background: linear-gradient(45deg, var(--accent-color), var(--success-color));
-    border: none;
-    border-radius: 5px;
+    background: linear-gradient(45deg, #991b1b, #4c0519); /* Deep Maroon Gradient */
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
     cursor: pointer;
-    margin-top: 20px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
 }
 
 button[type="submit"]:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 20px var(--accent-glow);
+    filter: brightness(1.2);
 }
 
 .manual-entry-btn {
