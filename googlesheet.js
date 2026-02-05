@@ -1,53 +1,69 @@
-async function sendDataToGoogleSheet(data, pdfBlob = null) {
-    const primaryUrl = 'https://script.google.com/macros/s/AKfycbzmmdhypTZgkmNjRS6LUo3hXrGeVzaOUwIuSlUWNjV_P3jy7DqxBpdV3cA0gi_db9TT/exec';
-    const otherUrl = 'https://script.google.com/macros/s/AKfycbzlq156m6UH5YhA6rYBsUCIvNiJU8B1Vlp04c-IuOPqRCX04mv1GPIvl96EANS5Aq9u/exec'; 
-
-    const ALLOWED_HQS = ['BYT', 'R', 'RSD', 'DBEC', 'DRZ', 'DURG'];
-
-    const syncData = JSON.parse(JSON.stringify(data));
-    delete syncData.speedChartConfig; delete syncData.stopChartConfig;
-    delete syncData.speedChartImage; delete syncData.stopChartImage;
-
-    // --- EXACT MAPPING FOR 23-COLUMNS ---
-    syncData.cliIdInput = document.getElementById('cliIdInput')?.value.trim() || 'N/A';
-    syncData.cliName = document.getElementById('cliName')?.value.trim() || 'N/A';
-    syncData.lpGroupCli = document.getElementById('lpGroupCli')?.value.trim() || 'N/A';
-    syncData.alpGroupCli = document.getElementById('alpGroupCli')?.value.trim() || 'N/A';
-    syncData.fromSection = document.getElementById('fromSection')?.value.toUpperCase() || 'N/A';
-    syncData.toSection = document.getElementById('toSection')?.value.toUpperCase() || 'N/A';
-    syncData.cliObservation = document.getElementById('cliRemarks')?.value.trim() || 'NIL';
-    syncData.actionTaken = document.querySelector('input[name="actionTakenRadio"]:checked')?.value || 'NIL';
-    syncData.totalAbnormality = document.getElementById('totalAbnormality')?.value || '0';
-    syncData.stopsJson = JSON.stringify(data.stops || []);
-    syncData.averageSpeed = localStorage.getItem('lastAvgSpeed') || '0';
-
-    if (data.fromDateTime) {
-        const hour = new Date(data.fromDateTime).getHours();
-        syncData.dayNight = (hour >= 6 && hour < 18) ? "DAY" : "NIGHT";
-    }
-
-    if (pdfBlob) {
-        const reader = new FileReader();
-        syncData.fileContent = await new Promise(resolve => {
-            reader.onloadend = () => resolve(reader.result.split(',')[1]);
-            reader.readAsDataURL(pdfBlob);
+document.addEventListener('DOMContentLoaded', () => {
+    const downloadBtn = document.getElementById('downloadReport');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', async () => {
+            console.log("Download Clicked - Preparing Data for Master Sheet...");
+            const reportData = JSON.parse(localStorage.getItem('spmReportData') || '{}');
+            await sendDataToGoogleSheet(reportData);
         });
-        syncData.fileName = `E-GARUD_${data.lpId || 'Trip'}.pdf`;
-        syncData.mimeType = "application/pdf";
     }
+});
 
-    let storedHq = localStorage.getItem('currentSessionHq') || "UNKNOWN";
-    let targetUrl = ALLOWED_HQS.includes(storedHq.trim().toUpperCase()) ? primaryUrl : otherUrl;
+async function sendDataToGoogleSheet(data, pdfBlob = null) {
+    // --- SIRF EK MASTER SCRIPT URL (Primary) ---
+    const MASTER_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyIpH28RYtLBazZQ1ehco5-rtenvNqnmn4FhnJdPz9Ww5KMbtm0-oZF2KMxWA9CLApg/exec';
+
+    // --- PAYLOAD PREPARATION ---
+    const syncData = {
+        cliIdInput: document.getElementById('cliIdInput')?.value.trim() || 'N/A',
+        cliName: document.getElementById('cliName')?.value.trim() || 'N/A',
+        lpId: data.lpDetails ? data.lpDetails[0]?.split(':')[1]?.trim() : 'N/A',
+        lpName: data.lpDetails ? data.lpDetails[1]?.split(':')[1]?.trim() : 'N/A',
+        lpGroupCli: data.lpDetails ? data.lpDetails[3]?.split(':')[1]?.trim() : 'N/A',
+        alpId: data.alpDetails ? data.alpDetails[0]?.split(':')[1]?.trim() : 'N/A',
+        alpName: data.alpDetails ? data.alpDetails[1]?.split(':')[1]?.trim() : 'N/A',
+        alpGroupCli: data.alpDetails ? data.alpDetails[3]?.split(':')[1]?.trim() : 'N/A',
+        locoNumber: data.trainDetails?.find(d => d.label === 'Loco Number')?.value || 'N/A',
+        trainNumber: data.trainDetails?.find(d => d.label === 'Train Number')?.value || 'N/A',
+        section: data.trainDetails?.find(d => d.label === 'Section')?.value || 'N/A',
+        fromSection: data.trainDetails?.find(d => d.label === 'From Station')?.value || 'N/A',
+        toSection: data.trainDetails?.find(d => d.label === 'To Station')?.value || 'N/A',
+        spmType: data.trainDetails?.find(d => d.label === 'SPM Type')?.value || 'N/A',
+        
+        // Calculations
+        dayNight: (new Date(data.trainDetails?.find(d => d.label === 'From Date & Time')?.value).getHours() >= 6 && new Date(data.trainDetails?.find(d => d.label === 'From Date & Time')?.value).getHours() < 18) ? "DAY" : "NIGHT",
+        averageSpeed: localStorage.getItem('lastAvgSpeed') || '0',
+        abnormality: getAbnormalitiesText(),
+        cliObservation: document.getElementById('cliRemarks')?.value.trim() || 'NIL',
+        actionTaken: document.querySelector('input[name="actionTakenRadio"]:checked')?.value || 'NIL',
+        totalAbnormality: document.getElementById('totalAbnormality')?.value || '0',
+        stopsJson: JSON.stringify(data.stops || []),
+        fileUrl: "Pending PDF"
+    };
+
+    console.log("Sending Data to Master Sheet...", syncData);
 
     try {
-        await fetch(targetUrl, {
+        await fetch(MASTER_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(syncData)
         });
+        console.log("Data successfully sent to Master Data Bank.");
         return true;
     } catch (error) {
-        console.error('Submission failed:', error);
-        throw error;
+        console.error('Submission Error:', error);
     }
+}
+
+function getAbnormalitiesText() {
+    let text = [];
+    document.querySelectorAll('#abnormalities-checkbox-container input[type="checkbox"]:checked').forEach(chk => {
+        let label = chk.parentElement.textContent.trim();
+        let inputId = chk.getAttribute('data-text-id');
+        let extra = inputId ? document.getElementById(inputId)?.value : '';
+        text.push(extra ? `${label} (${extra})` : label);
+    });
+    return text.join(', ') || "NIL";
 }
