@@ -1,367 +1,677 @@
-<script>
-    // --- 1. CONFIGURATION ---
-    const API_KEY = 'AIzaSyAw23pJz0K9fZb2rRRAe2C2cJDilRc0Kac'; 
-    const SHEET_ID = '1qYmIAKzt4rAVP0BPTTipzdOgIrwus6P-oGNf5HVekJM'; // Dashboard Sheet ID
-    const RANGE = 'Sheet1!A:W'; // UPDATED: Sirf W tak (23 Columns)
-
-    // --- 2. UPDATED COLUMN MAPPING (23-Column Structure) ---
-    const COLS = {
-        TIMESTAMP: 0,       // Col A
-        CLI_ID: 1,          // Col B
-        LP_ID: 3,           // Col D
-        NAME: 4,            // Col E (LP Name)
-        SECTION: 11,        // Col L
-        FROM_LOC: 12,       // Col M
-        TO_LOC: 13,         // Col N
-        RAKE_TYPE: 14,      // Col O
-        STOPS_JSON: 21      // Col V (Sara data iske andar hai)
-    };
-
-    // ... Baaki variables same rahenge ...
-    const LINE_LIMIT = 50; 
-    const COLOR_PALETTE = [
-        '#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6',
-        '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3',
-        '#808000', '#ffd8b1', '#000075', '#a9a9a9'
-    ];
-
-    let myChart;
-    let processedData = []; 
-    let lpSet = new Set();
-    let locationSet = new Set();
-    const loadingDiv = document.getElementById('loading');
-    const chartDiv = document.getElementById('chart-container');
-    const filtersPanel = document.getElementById('filters-panel');
-    let chartBaseOption; 
-    let showOnlyAverage = false; 
-
-    // Date Parser Helper
-    function parseDate(timestampStr) {
-        if (!timestampStr) return null;
-        const datePart = timestampStr.toString().split('T')[0]; 
-        return new Date(datePart);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPM Stop Analysis Dashboard (Excel Filter)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    
+  <style>
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+        margin: 0;
+        padding: 30px; 
+        min-height: 100vh; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
     }
 
-    function formatDateToInput(date) {
-        if (!date) return '';
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
+    h1 {
+        text-align: center;
+        color: #1e3a8a;
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        letter-spacing: 0.5px;
+        flex-shrink: 0;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        initChart();
-        loadAndProcessData(); 
-        document.getElementById('generate-btn').addEventListener('click', updateChart);
-        document.getElementById('toggle-average-btn').addEventListener('click', toggleAverageProfile);
-    });
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start; 
+        gap: 20px; 
+        margin-bottom: 30px;
+        padding: 25px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        max-width: 1400px; 
+        width: 100%;
+        box-sizing: border-box;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-    function initChart() {
-        myChart = echarts.init(chartDiv);
-        chartBaseOption = {
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: { type: 'cross' }, 
-                formatter: (params) => {
-                    let tooltip = `Distance: ${params[0].axisValue}m<br/>`;
-                    params.sort((a, b) => (b.value[1] || 0) - (a.value[1] || 0)); 
-                    params.forEach(param => {
-                        if (param.value[1] !== null && param.value[1] !== undefined) {
-                            tooltip += `${param.marker} ${param.seriesName}: ${param.value[1].toFixed(1)} Kmph<br/>`;
-                        }
-                    });
-                    return tooltip;
-                }
-            },
-            toolbox: { 
-                show: true,
-                feature: {
-                    dataZoom: { yAxisIndex: 'none' },
-                    dataView: { readOnly: false },
-                    magicType: { type: ['line', 'bar'] },
-                    restore: {},
-                    saveAsImage: {},
-                    legendToggle: {
-                        show: true,
-                        title: 'Toggle Legend',
-                        icon: 'path://M4,5h16v2H4V5zM4,11h16v2H4V11zM4,17h16v2H4V17z',
-                        onclick: function () {
-                            const currentOption = myChart.getOption();
-                            myChart.setOption({ legend: { show: !currentOption.legend[0].show } });
-                        }
-                    }
-                }
-            },
-            grid: { left: '3%', right: '4%', bottom: '3%', top: '12%', containLabel: true },
-            xAxis: { type: 'value', name: 'Distance to Stop (m)', min: 0, max: 1000, inverse: true },
-            yAxis: { type: 'value', name: 'Speed (Kmph)', min: 0, max: 120 },
-            title: { text: 'Stop Approach Speed Analysis' },
-            legend: { show: false, data: [], type: 'scroll', top: 30 },
-            series: []
+    .controls:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* --- Excel Filter Styling --- */
+    .filter-group-excel {
+        display: flex;
+        flex-direction: column;
+        min-width: 220px; 
+        flex: 1; 
+        background: #f9fafb;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-group-excel label {
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #1f2937;
+        font-size: 1.1rem;
+    }
+
+    .filter-search {
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        background: #fff;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .filter-search:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    /* --- Checkbox List (Scrollable) --- */
+    .checkbox-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 12px;
+        max-height: 180px;      
+        overflow-y: auto;        
+        background: #ffffff;
+        scrollbar-width: thin;
+        scrollbar-color: #93c5fd #e5e7eb;
+    }
+
+    .checkbox-list::-webkit-scrollbar { width: 6px; }
+    .checkbox-list::-webkit-scrollbar-track { background: #e5e7eb; border-radius: 3px; }
+    .checkbox-list::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 3px; }
+    .checkbox-list div { display: flex; align-items: center; }
+
+    .checkbox-list label {
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        margin-bottom: 0;
+        width: 100%;
+        color: #374151;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .checkbox-list label:hover { color: #1e40af; }
+    .checkbox-list input { margin-right: 10px; accent-color: #3b82f6; }
+
+    /* --- Rake/Date/Recent Filter Styling --- */
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        min-width: 180px; 
+        flex: 1; 
+        background: #f9fafb;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-group label {
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #1f2937;
+        font-size: 1.1rem;
+    }
+
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px;
+        border-radius: 6px;
+        background: #fff; 
+        border: 1px solid #e5e7eb; 
+    }
+
+    .checkbox-group div { display: flex; align-items: center; }
+    .checkbox-group input { margin-right: 10px; accent-color: #3b82f6; }
+    .checkbox-group label {
+        font-weight: 500;
+        color: #374151;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        margin-bottom: 0; 
+    }
+    .checkbox-group label:hover { color: #1e40af; }
+
+    /* --- Recent Filter Select & Date Input Styling --- */
+    .filter-group #recent-filter,
+    .filter-group input[type="date"] {
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        background: #fff;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        font-family: inherit; 
+        color: #374151; 
+        box-sizing: border-box; 
+        width: 100%; 
+    }
+
+    .filter-group #recent-filter:focus,
+    .filter-group input[type="date"]:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+     
+    /* --- Chart Container --- */
+    #chart-container {
+        width: 100%;
+        max-width: 1400px; 
+        height: 650px; 
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        padding: 25px;
+        box-sizing: border-box;
+        display: none;
+        transition: transform 0.3s ease;
+    }
+
+    #chart-container:hover {
+        transform: translateY(-5px);
+    }
+
+    #loading {
+        text-align: center;
+        font-size: 1.3em;
+        color: #6b7280;
+        padding: 30px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    /* --- Buttons --- */
+    .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-self: center; 
+        margin-top: 15px; 
+        min-width: 250px;
+    }
+
+    #generate-btn, #toggle-average-btn {
+        background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: background 0.3s ease, transform 0.2s ease;
+        width: 100%; 
+        box-sizing: border-box;
+        margin-left: 0; 
+        margin-top: 0; 
+    }
+
+    #generate-btn:hover, #toggle-average-btn:hover {
+        background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+        transform: scale(1.05);
+    }
+
+    </style>
+</head>
+<body>
+
+    <h1>SPM Stop Analysis Dashboard</h1>
+    <div id="loading">Loading data from Database...</div>
+
+    <div class="controls" id="filters-panel" style="display: none;">
+        
+        <div class="filter-group">
+            <label for="from-date">From Date:</label>
+            <input type="date" id="from-date">
+        </div>
+        <div class="filter-group">
+            <label for="to-date">To Date:</label>
+            <input type="date" id="to-date">
+        </div>
+        <div class="filter-group-excel">
+            <label for="lp-search">Select LP ID (Multiple):</label>
+            <input type="text" id="lp-search" class="filter-search" onkeyup="filterCheckboxes('lp-search', 'lp-filter-list')" placeholder="Search LP...">
+            <div id="lp-filter-list" class="checkbox-list">
+            </div>
+        </div>
+        
+        <div class="filter-group-excel">
+            <label for="location-search">Select Stop Location (Multiple):</label>
+            <input type="text" id="location-search" class="filter-search" onkeyup="filterCheckboxes('location-search', 'location-filter-list')" placeholder="Search Location...">
+            <div id="location-filter-list" class="checkbox-list">
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label>Select Rake Type (Multiple):</label>
+            <div class="checkbox-group" id="rake-filter">
+                <div><input type="checkbox" id="rake-all" value="ALL" checked><label for="rake-all">ALL</label></div>
+                <div><input type="checkbox" id="rake-goods-loaded" value="GOODS LOADED" checked><label for="rake-goods-loaded">GOODS LOADED</label></div>
+                <div><input type="checkbox" id="rake-goods-empty" value="GOODS EMPTY" checked><label for="rake-goods-empty">GOODS EMPTY</label></div>
+                <div><input type="checkbox" id="rake-coaching" value="COACHING" checked><label for="rake-coaching">COACHING</label></div>
+                <div><input type="checkbox" id="rake-memu" value="MEMU" checked><label for="rake-memu">MEMU</label></div>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label>Select Number of Recent Analyses:</label>
+            <select id="recent-filter">
+                <option value="all" selected>All</option>
+                <option value="10">Last 10</option>
+                <option value="20">Last 20</option>
+                <option value="30">Last 30</option>
+                <option value="40">Last 40</option>
+                <option value="50">Last 50</option>
+            </select>
+        </div>
+        
+        <div class="button-container">
+            <button id="generate-btn">Generate Graph</button>
+            <button id="toggle-average-btn">Show Only Average Profile</button>
+        </div>
+    </div>
+
+    <div id="chart-container"></div>
+
+    <script>
+        // --- CONFIGURATION ---
+        // Aapka naya Apps Script URL jo doGet handle karega
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyIpH28RYtLBazZQ1ehco5-rtenvNqnmn4FhnJdPz9Ww5KMbtm0-oZF2KMxWA9CLApg/exec';
+
+        // --- UPDATED COLUMN MAPPING (Based on 23-Column Structure) ---
+        // Backend se data Array of Arrays mein aayega.
+        const COLS = {
+            TIMESTAMP: 0,       // Col A
+            CLI_ID: 1,          // Col B
+            CLI_NAME: 2,        // Col C
+            LP_ID: 3,           // Col D
+            NAME: 4,            // Col E (LP Name)
+            TRAIN_NO: 10,       // Col K (Index 10)
+            RAKE_TYPE: 14,      // Col O (SPM Type)
+            STOPS_JSON: 21      // Col V (Detailed Stops JSON)
         };
-        myChart.setOption(chartBaseOption);
-    }
 
-    function toggleAverageProfile() {
-        showOnlyAverage = !showOnlyAverage;
-        document.getElementById('toggle-average-btn').textContent = showOnlyAverage ? 'Show All Profiles' : 'Show Only Average Profile';
-        updateChart();
-    }
-
-    async function loadAndProcessData() {
-        try {
-            await new Promise((resolve) => gapi.load('client', resolve));
-            await gapi.client.init({
-                'apiKey': API_KEY,
-                'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-            });
-            const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: SHEET_ID,
-                range: RANGE,
-            });
-            const rawData = response.result.values;
-            if (!rawData || rawData.length === 0) { throw new Error("No data found in sheet."); }
-            
-            const { minDate, maxDate } = preprocessData(rawData); 
-            populateFilters(minDate, maxDate); 
-            setupAllFilterLogic(); 
-
-            loadingDiv.style.display = 'none'; 
-            filtersPanel.style.display = 'flex'; 
-
-        } catch (error) {
-            console.error('Error loading data:', error);
-            loadingDiv.innerText = "Error loading data. Check console.";
-        }
-    }
-
-    // --- 3. UPDATED PREPROCESS LOGIC (JSON Parsing) ---
-    function preprocessData(rawData) {
-        processedData = [];
-        lpSet.clear();
-        locationSet.clear();
-        
-        let minDate = null; 
-        let maxDate = null; 
-
-        // Start loop from index 1 (skip header)
-        for (let i = 1; i < rawData.length; i++) {
-            const row = rawData[i];
-            if (!row || row.length < 5) continue; 
-            
-            const timestampStr = (row[COLS.TIMESTAMP] || "").trim();
-            const currentTimestamp = timestampStr ? new Date(timestampStr) : null;
-            
-            if (!currentTimestamp || isNaN(currentTimestamp)) continue;
-
-            const lpId = (row[COLS.LP_ID] || "").trim();
-            const lpName = (row[COLS.NAME] || "").trim();
-            const trainNo = (row[10] || "").trim(); // Col K is Index 10
-            const rakeType = (row[COLS.RAKE_TYPE] || "GOODS").toUpperCase();
-            
-            // --- CRITICAL: Parse JSON from Column V ---
-            const jsonStr = row[COLS.STOPS_JSON];
-            let stops = [];
-            try {
-                if (jsonStr && jsonStr !== "[]") {
-                    stops = JSON.parse(jsonStr);
-                }
-            } catch (e) {
-                console.warn("Invalid JSON in row " + (i+1), e);
-                continue;
-            }
-
-            // Loop through each stop in the JSON array
-            stops.forEach(stop => {
-                if (!stop.speedsBefore || stop.speedsBefore.length < 5) return;
-
-                // Stop object structure from analysis:
-                // speedsBefore: [v1000, v800, v500, v100, v50]
-                const s1000 = parseFloat(stop.speedsBefore[0]);
-                const s800  = parseFloat(stop.speedsBefore[1]);
-                const s500  = parseFloat(stop.speedsBefore[2]);
-                const s100  = parseFloat(stop.speedsBefore[3]);
-                const s50   = parseFloat(stop.speedsBefore[4]);
-
-                const graphData = [[1000, s1000], [800, s800], [500, s500], [100, s100], [50, s50], [0, 0]];
-                const stopLocation = stop.stopLocation || "Unknown";
-
-                if (lpId) lpSet.add(lpId);
-                locationSet.add(stopLocation);
-
-                processedData.push({
-                    date: currentTimestamp,
-                    dateStr: formatDateToInput(currentTimestamp),
-                    trainNo: trainNo,
-                    lpId: lpId,
-                    name: lpName,
-                    location: stopLocation,
-                    rakeType: rakeType, 
-                    km: stop.kilometer || '',
-                    graphData: graphData
-                });
-            });
-
-            if (!minDate || currentTimestamp < minDate) minDate = currentTimestamp;
-            if (!maxDate || currentTimestamp > maxDate) maxDate = currentTimestamp;
-        }
-        
-        return { minDate, maxDate };
-    }
-
-    function populateFilters(minDate, maxDate) {
-        const lpList = document.getElementById('lp-filter-list');
-        const locationList = document.getElementById('location-filter-list');
-        
-        let lpHtml = '<div><label><input type="checkbox" id="lp-all" class="filter-all" checked> <strong>ALL</strong></label></div>';
-        [...lpSet].sort().forEach(lp => {
-            lpHtml += `<div><label><input type="checkbox" class="lp-item" value="${lp}" checked> ${lp}</label></div>`;
-        });
-        lpList.innerHTML = lpHtml;
-
-        let locHtml = '<div><label><input type="checkbox" id="location-all" class="filter-all" checked> <strong>ALL</strong></label></div>';
-        [...locationSet].sort().forEach(loc => {
-            locHtml += `<div><label><input type="checkbox" class="location-item" value="${loc}" checked> ${loc}</label></div>`;
-        });
-        locationList.innerHTML = locHtml;
-
-        if (minDate) document.getElementById('from-date').value = formatDateToInput(minDate);
-        if (maxDate) document.getElementById('to-date').value = formatDateToInput(maxDate);
-    }
-
-    // ... (Filter logic functions remain same: filterCheckboxes, setupAllFilterLogic) ...
-    function filterCheckboxes(inputId, listId) {
-        let input = document.getElementById(inputId);
-        let filter = input.value.toUpperCase();
-        let list = document.getElementById(listId);
-        let items = list.getElementsByTagName('div');
-        for (let i = 1; i < items.length; i++) { 
-            let label = items[i].getElementsByTagName('label')[0];
-            if (label) {
-                let txtValue = label.textContent || label.innerText;
-                items[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
-            }
-        }
-    }
-
-    function setupAllFilterLogic() {
-        function setupCheckboxLogic(allCheckboxId, itemClassName) {
-            const allCb = document.getElementById(allCheckboxId);
-            const itemCbs = document.querySelectorAll(`.${itemClassName}`);
-            allCb.addEventListener('change', () => itemCbs.forEach(cb => cb.checked = allCb.checked));
-            itemCbs.forEach(cb => {
-                cb.addEventListener('change', () => {
-                    if (!cb.checked) allCb.checked = false;
-                    else if ([...itemCbs].every(c => c.checked)) allCb.checked = true;
-                });
-            });
-        }
-        setupCheckboxLogic('lp-all', 'lp-item');
-        setupCheckboxLogic('location-all', 'location-item');
-        setupCheckboxLogic('rake-all', 'rake-item');
-        document.querySelectorAll('#rake-filter input[type="checkbox"]:not(#rake-all)').forEach(cb => cb.classList.add('rake-item'));
-    }
-
-    function calculateAverageSeries(filteredStops) {
-        if (filteredStops.length === 0) return null;
-        const sums = { 1000: 0, 800: 0, 500: 0, 100: 0, 50: 0, 0: 0 };
-        const counts = { 1000: 0, 800: 0, 500: 0, 100: 0, 50: 0, 0: 0 };
-        
-        for (const stop of filteredStops) {
-            for (const point of stop.graphData) {
-                const distance = point[0];
-                const speed = point[1];
-                if (sums.hasOwnProperty(distance) && speed !== null && !isNaN(speed)) { 
-                    sums[distance] += speed; 
-                    counts[distance]++; 
-                }
-            }
-        }
-        
-        const avgData = [
-            [1000, counts[1000] > 0 ? sums[1000] / counts[1000] : null],
-            [800, counts[800] > 0 ? sums[800] / counts[800] : null],
-            [500, counts[500] > 0 ? sums[500] / counts[500] : null],
-            [100, counts[100] > 0 ? sums[100] / counts[100] : null],
-            [50, counts[50] > 0 ? sums[50] / counts[50] : null],
-            [0, 0]
+        const LINE_LIMIT = 50; 
+        const COLOR_PALETTE = [
+            '#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6',
+            '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3',
+            '#808000', '#ffd8b1', '#000075', '#a9a9a9'
         ];
 
-        return {
-            name: `Average Profile (${filteredStops.length} stops)`,
-            type: 'line', data: avgData, smooth: true, symbol: 'none',
-            color: '#c23531', lineStyle: { width: 4, type: 'dashed', color: '#c23531' },
-            emphasis: { lineStyle: { width: 6 } }
-        };
-    }
+        let myChart;
+        let processedData = []; 
+        let lpSet = new Set();
+        let locationSet = new Set();
+        const loadingDiv = document.getElementById('loading');
+        const chartDiv = document.getElementById('chart-container');
+        const filtersPanel = document.getElementById('filters-panel');
+        let chartBaseOption; 
+        let showOnlyAverage = false; 
 
-    function updateChart() {
-        function getCheckedValues(allCheckboxId, itemClassName) {
-            if (document.getElementById(allCheckboxId).checked) return ['ALL'];
-            let values = [];
-            document.querySelectorAll(`.${itemClassName}:checked`).forEach(cb => values.push(cb.value));
-            return values;
+        // Helper: Date Parser
+        function parseDate(timestampStr) {
+            if (!timestampStr) return null;
+            // Google Sheets se date string format mein aa sakti hai (YYYY-MM-DDTHH:mm:ss.sssZ)
+            const d = new Date(timestampStr);
+            return isNaN(d.getTime()) ? null : d;
         }
 
-        const selectedLps = getCheckedValues('lp-all', 'lp-item');
-        const selectedLocations = getCheckedValues('location-all', 'location-item');
-        const selectedRakes = getCheckedValues('rake-all', 'rake-item');
-        const allRakesChecked = document.getElementById('rake-all').checked;
+        // Helper: Format Date Input
+        function formatDateToInput(date) {
+            if (!date) return '';
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
-        const fromDateStr = document.getElementById('from-date').value;
-        const toDateStr = document.getElementById('to-date').value;
-        let fromDate = fromDateStr ? new Date(fromDateStr) : null;
-        let toDate = toDateStr ? new Date(toDateStr) : null;
-        if (toDate) toDate.setHours(23, 59, 59, 999);
-
-        const filteredData = processedData.filter(stop => {
-            const lpMatch = selectedLps.includes('ALL') || selectedLps.includes(stop.lpId);
-            const locationMatch = selectedLocations.includes('ALL') || selectedLocations.includes(stop.location);
-            const rakeMatch = allRakesChecked || selectedRakes.includes(stop.rakeType);
-            const dateMatch = (!fromDate || stop.date >= fromDate) && (!toDate || stop.date <= toDate);
-            return lpMatch && locationMatch && rakeMatch && dateMatch;
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            loadAndProcessData(); 
+            document.getElementById('generate-btn').addEventListener('click', updateChart);
+            document.getElementById('toggle-average-btn').addEventListener('click', toggleAverageProfile);
         });
 
-        const recentValue = document.getElementById('recent-filter').value;
-        let displayData = filteredData;
-        if (recentValue !== 'all') {
-            displayData = filteredData.slice(-parseInt(recentValue));
+        function initChart() {
+            myChart = echarts.init(chartDiv);
+            chartBaseOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross' }, 
+                    formatter: (params) => {
+                        let tooltip = `Distance: ${params[0].axisValue}m<br/>`;
+                        params.sort((a, b) => (b.value[1] || 0) - (a.value[1] || 0)); 
+                        params.forEach(param => {
+                            if (param.value[1] !== null && param.value[1] !== undefined) {
+                                tooltip += `${param.marker} ${param.seriesName}: ${param.value[1].toFixed(1)} Kmph<br/>`;
+                            }
+                        });
+                        return tooltip;
+                    }
+                },
+                toolbox: { 
+                    show: true,
+                    feature: {
+                        dataZoom: { yAxisIndex: 'none' },
+                        dataView: { readOnly: false },
+                        magicType: { type: ['line', 'bar'] },
+                        restore: {},
+                        saveAsImage: {},
+                        legendToggle: {
+                            show: true,
+                            title: 'Toggle Legend',
+                            icon: 'path://M4,5h16v2H4V5zM4,11h16v2H4V11zM4,17h16v2H4V17z',
+                            onclick: function () {
+                                const currentOption = myChart.getOption();
+                                myChart.setOption({ legend: { show: !currentOption.legend[0].show } });
+                            }
+                        }
+                    }
+                },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '12%', containLabel: true },
+                xAxis: { type: 'value', name: 'Distance to Stop (m)', min: 0, max: 1000, inverse: true },
+                yAxis: { type: 'value', name: 'Speed (Kmph)', min: 0, max: 120 },
+                title: { text: 'Stop Approach Speed Analysis' },
+                legend: { show: false, data: [], type: 'scroll', top: 30 },
+                series: []
+            };
+            myChart.setOption(chartBaseOption);
         }
 
-        chartDiv.style.display = 'block';
-        myChart.resize(); 
-
-        if (displayData.length === 0) {
-            myChart.setOption({ ...chartBaseOption, title: { text: 'No matching data', left: 'center', top: 'center' }, series: [] }, true);
-            return;
+        function toggleAverageProfile() {
+            showOnlyAverage = !showOnlyAverage;
+            document.getElementById('toggle-average-btn').textContent = showOnlyAverage ? 'Show All Profiles' : 'Show Only Average Profile';
+            updateChart();
         }
-        
-        const avgSeries = calculateAverageSeries(displayData);
-        let finalSeries = avgSeries ? [avgSeries] : [];
-        let subtext = showOnlyAverage ? `Showing only average of ${displayData.length} stops.` : null;
 
-        if (!showOnlyAverage) {
-            if (displayData.length > LINE_LIMIT) {
-                subtext = `Showing average of ${displayData.length} stops. (Too many to show individually)`;
-            } else {
-                const seriesData = displayData.map((stop, index) => ({
-                    name: `LP ${stop.lpId} (${stop.name}) @ ${stop.location}`,
-                    type: 'line', smooth: true, symbol: 'none',
-                    lineStyle: { width: 2, opacity: 0.7 },
-                    data: stop.graphData,
-                    emphasis: { focus: 'series', lineStyle: { width: 4, opacity: 1 } },
-                    color: COLOR_PALETTE[index % COLOR_PALETTE.length]
-                }));
-                finalSeries.push(...seriesData);
+        // --- FETCH DATA FROM APPS SCRIPT (NO API KEY) ---
+        async function loadAndProcessData() {
+            try {
+                // Apps Script ke 'doGet' se data maang rahe hain
+                const response = await fetch(SCRIPT_URL);
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                
+                const rawData = await response.json(); // Data JSON format mein milega (Array of Arrays)
+                
+                if (!rawData || rawData.length === 0) { throw new Error("No data found in sheet."); }
+                
+                const { minDate, maxDate } = preprocessData(rawData); 
+                populateFilters(minDate, maxDate); 
+                setupAllFilterLogic(); 
+
+                loadingDiv.style.display = 'none'; 
+                filtersPanel.style.display = 'flex'; 
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                loadingDiv.innerHTML = "Error loading data. <br>Ensure the backend script is deployed as 'Anyone' and doGet is correct.<br>" + error.message;
             }
         }
-        
-        myChart.setOption({
-            ...chartBaseOption,
-            title: { text: 'Stop Approach Speed Analysis', subtext: subtext, left: 'auto', top: 'auto' },
-            legend: { ...chartBaseOption.legend, data: finalSeries.map(s => s.name) },
-            series: finalSeries
-        }, true);
-    }
-</script>
+
+        // --- PREPROCESS DATA (Handling JSON in Col V) ---
+        function preprocessData(rawData) {
+            processedData = [];
+            lpSet.clear();
+            locationSet.clear();
+            
+            let minDate = null; 
+            let maxDate = null; 
+
+            // rawData[0] header hai, usko skip kar sakte hain ya check kar sakte hain
+            const startIdx = 1; 
+
+            for (let i = startIdx; i < rawData.length; i++) {
+                const row = rawData[i];
+                if (!row || row.length < 5) continue; // Basic validation
+                
+                const timestampStr = row[COLS.TIMESTAMP];
+                const currentTimestamp = parseDate(timestampStr);
+                
+                if (!currentTimestamp) continue;
+
+                const lpId = String(row[COLS.LP_ID] || "").trim();
+                const lpName = String(row[COLS.NAME] || "").trim();
+                const trainNo = String(row[COLS.TRAIN_NO] || "").trim();
+                const rakeType = String(row[COLS.RAKE_TYPE] || "GOODS").toUpperCase();
+                
+                // --- CRITICAL: Parsing JSON from Column V ---
+                const jsonStr = row[COLS.STOPS_JSON];
+                let stops = [];
+                try {
+                    // Agar cell khali hai ya '[]' hai toh skip
+                    if (jsonStr && typeof jsonStr === 'string' && jsonStr.trim() !== "") {
+                        stops = JSON.parse(jsonStr);
+                    }
+                } catch (e) {
+                    console.warn(`Row ${i+1}: Invalid JSON in Col V`, e);
+                    continue;
+                }
+
+                // Stops array ko loop karke graph points banana
+                if (Array.isArray(stops)) {
+                    stops.forEach(stop => {
+                        // Check if speedsBefore exists
+                        if (!stop.speedsBefore || stop.speedsBefore.length < 5) return;
+
+                        const s1000 = parseFloat(stop.speedsBefore[0]);
+                        const s800  = parseFloat(stop.speedsBefore[1]);
+                        const s500  = parseFloat(stop.speedsBefore[2]);
+                        const s100  = parseFloat(stop.speedsBefore[3]);
+                        const s50   = parseFloat(stop.speedsBefore[4]);
+
+                        // Graph Array: [Distance, Speed]
+                        const graphData = [[1000, s1000], [800, s800], [500, s500], [100, s100], [50, s50], [0, 0]];
+                        const stopLocation = stop.stopLocation || "Unknown";
+
+                        if (lpId) lpSet.add(lpId);
+                        locationSet.add(stopLocation);
+
+                        processedData.push({
+                            date: currentTimestamp,
+                            dateStr: formatDateToInput(currentTimestamp),
+                            trainNo: trainNo,
+                            lpId: lpId,
+                            name: lpName,
+                            location: stopLocation,
+                            rakeType: rakeType, 
+                            km: stop.kilometer || '',
+                            graphData: graphData
+                        });
+                    });
+                }
+
+                // Date Range Calculate
+                if (!minDate || currentTimestamp < minDate) minDate = currentTimestamp;
+                if (!maxDate || currentTimestamp > maxDate) maxDate = currentTimestamp;
+            }
+            
+            return { minDate, maxDate };
+        }
+
+        // --- FILTERS & CHART LOGIC (Same as before) ---
+        function populateFilters(minDate, maxDate) {
+            const lpList = document.getElementById('lp-filter-list');
+            const locationList = document.getElementById('location-filter-list');
+            
+            let lpHtml = '<div><label><input type="checkbox" id="lp-all" class="filter-all" checked> <strong>ALL</strong></label></div>';
+            [...lpSet].sort().forEach(lp => {
+                lpHtml += `<div><label><input type="checkbox" class="lp-item" value="${lp}" checked> ${lp}</label></div>`;
+            });
+            lpList.innerHTML = lpHtml;
+
+            let locHtml = '<div><label><input type="checkbox" id="location-all" class="filter-all" checked> <strong>ALL</strong></label></div>';
+            [...locationSet].sort().forEach(loc => {
+                locHtml += `<div><label><input type="checkbox" class="location-item" value="${loc}" checked> ${loc}</label></div>`;
+            });
+            locationList.innerHTML = locHtml;
+
+            if (minDate) document.getElementById('from-date').value = formatDateToInput(minDate);
+            if (maxDate) document.getElementById('to-date').value = formatDateToInput(maxDate);
+        }
+
+        function filterCheckboxes(inputId, listId) {
+            let input = document.getElementById(inputId);
+            let filter = input.value.toUpperCase();
+            let list = document.getElementById(listId);
+            let items = list.getElementsByTagName('div');
+            for (let i = 1; i < items.length; i++) { 
+                let label = items[i].getElementsByTagName('label')[0];
+                if (label) {
+                    let txtValue = label.textContent || label.innerText;
+                    items[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+                }
+            }
+        }
+
+        function setupAllFilterLogic() {
+            function setupCheckboxLogic(allCheckboxId, itemClassName) {
+                const allCb = document.getElementById(allCheckboxId);
+                const itemCbs = document.querySelectorAll(`.${itemClassName}`);
+                allCb.addEventListener('change', () => itemCbs.forEach(cb => cb.checked = allCb.checked));
+                itemCbs.forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        if (!cb.checked) allCb.checked = false;
+                        else if ([...itemCbs].every(c => c.checked)) allCb.checked = true;
+                    });
+                });
+            }
+            setupCheckboxLogic('lp-all', 'lp-item');
+            setupCheckboxLogic('location-all', 'location-item');
+            setupCheckboxLogic('rake-all', 'rake-item');
+            document.querySelectorAll('#rake-filter input[type="checkbox"]:not(#rake-all)').forEach(cb => cb.classList.add('rake-item'));
+        }
+
+        function calculateAverageSeries(filteredStops) {
+            if (filteredStops.length === 0) return null;
+            const sums = { 1000: 0, 800: 0, 500: 0, 100: 0, 50: 0, 0: 0 };
+            const counts = { 1000: 0, 800: 0, 500: 0, 100: 0, 50: 0, 0: 0 };
+            
+            for (const stop of filteredStops) {
+                for (const point of stop.graphData) {
+                    const distance = point[0];
+                    const speed = point[1];
+                    if (sums.hasOwnProperty(distance) && speed !== null && !isNaN(speed)) { 
+                        sums[distance] += speed; 
+                        counts[distance]++; 
+                    }
+                }
+            }
+            
+            const avgData = [
+                [1000, counts[1000] > 0 ? sums[1000] / counts[1000] : null],
+                [800, counts[800] > 0 ? sums[800] / counts[800] : null],
+                [500, counts[500] > 0 ? sums[500] / counts[500] : null],
+                [100, counts[100] > 0 ? sums[100] / counts[100] : null],
+                [50, counts[50] > 0 ? sums[50] / counts[50] : null],
+                [0, 0]
+            ];
+
+            return {
+                name: `Average Profile (${filteredStops.length} stops)`,
+                type: 'line', data: avgData, smooth: true, symbol: 'none',
+                color: '#c23531', lineStyle: { width: 4, type: 'dashed', color: '#c23531' },
+                emphasis: { lineStyle: { width: 6 } }
+            };
+        }
+
+        function updateChart() {
+            function getCheckedValues(allCheckboxId, itemClassName) {
+                if (document.getElementById(allCheckboxId).checked) return ['ALL'];
+                let values = [];
+                document.querySelectorAll(`.${itemClassName}:checked`).forEach(cb => values.push(cb.value));
+                return values;
+            }
+
+            const selectedLps = getCheckedValues('lp-all', 'lp-item');
+            const selectedLocations = getCheckedValues('location-all', 'location-item');
+            const selectedRakes = getCheckedValues('rake-all', 'rake-item');
+            const allRakesChecked = document.getElementById('rake-all').checked;
+
+            const fromDateStr = document.getElementById('from-date').value;
+            const toDateStr = document.getElementById('to-date').value;
+            let fromDate = fromDateStr ? new Date(fromDateStr) : null;
+            let toDate = toDateStr ? new Date(toDateStr) : null;
+            if (toDate) toDate.setHours(23, 59, 59, 999);
+
+            const filteredData = processedData.filter(stop => {
+                const lpMatch = selectedLps.includes('ALL') || selectedLps.includes(stop.lpId);
+                const locationMatch = selectedLocations.includes('ALL') || selectedLocations.includes(stop.location);
+                const rakeMatch = allRakesChecked || selectedRakes.includes(stop.rakeType);
+                const dateMatch = (!fromDate || stop.date >= fromDate) && (!toDate || stop.date <= toDate);
+                return lpMatch && locationMatch && rakeMatch && dateMatch;
+            });
+
+            const recentValue = document.getElementById('recent-filter').value;
+            let displayData = filteredData;
+            if (recentValue !== 'all') {
+                displayData = filteredData.slice(-parseInt(recentValue));
+            }
+
+            chartDiv.style.display = 'block';
+            myChart.resize(); 
+
+            if (displayData.length === 0) {
+                myChart.setOption({ ...chartBaseOption, title: { text: 'No matching data', left: 'center', top: 'center' }, series: [] }, true);
+                return;
+            }
+            
+            const avgSeries = calculateAverageSeries(displayData);
+            let finalSeries = avgSeries ? [avgSeries] : [];
+            let subtext = showOnlyAverage ? `Showing only average of ${displayData.length} stops.` : null;
+
+            if (!showOnlyAverage) {
+                if (displayData.length > LINE_LIMIT) {
+                    subtext = `Showing average of ${displayData.length} stops. (Too many to show individually)`;
+                } else {
+                    const seriesData = displayData.map((stop, index) => ({
+                        name: `LP ${stop.lpId} (${stop.name}) @ ${stop.location}`,
+                        type: 'line', smooth: true, symbol: 'none',
+                        lineStyle: { width: 2, opacity: 0.7 },
+                        data: stop.graphData,
+                        emphasis: { focus: 'series', lineStyle: { width: 4, opacity: 1 } },
+                        color: COLOR_PALETTE[index % COLOR_PALETTE.length]
+                    }));
+                    finalSeries.push(...seriesData);
+                }
+            }
+            
+            myChart.setOption({
+                ...chartBaseOption,
+                title: { text: 'Stop Approach Speed Analysis', subtext: subtext, left: 'auto', top: 'auto' },
+                legend: { ...chartBaseOption.legend, data: finalSeries.map(s => s.name) },
+                series: finalSeries
+            }, true);
+        }
+    </script>
+</body>
+</html>
