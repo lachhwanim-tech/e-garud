@@ -1,5 +1,5 @@
-const PRIMARY_URL = 'https://script.google.com/macros/s/AKfycbwjz5OJit3c6kA7G5IHenk5CYvkf9nFCiBOp7syEH0Pe7ne3uFN7D-i3seQvssHgGXk/exec';
-const OTHER_URL = 'https://script.google.com/macros/s/AKfycbzQ1m7Pb6RrtVTOP1Js_fawI8lOs92YOSnuMlZlzXwwHrWZeS8TrFWUhgAPGSr6dvpX/exec';
+const PRIMARY_URL = 'https://script.google.com/macros/s/AKfycbzmmdhypTZgkmNjRS6LUo3hXrGeVzaOUwIuSlUWNjV_P3jy7DqxBpdV3cA0gi_db9TT/exec'; // Apne Primary URL se badlein
+const OTHER_URL = 'https://script.google.com/macros/s/AKfycbzlq156m6UH5YhA6rYBsUCIvNiJU8B1Vlp04c-IuOPqRCX04mv1GPIvl96EANS5Aq9u/exec'; // Apne Other URL se badlein
 
 /**
  * Converts a file to a Base64 string.
@@ -9,9 +9,6 @@ function fileToBase64(file) {
         const reader = new FileReader();
         reader.onload = () => {
             const encoded = reader.result.toString().replace(/^data:(.*,)?/, '');
-            if ((encoded.length % 4) > 0) {
-                encoded += '='.repeat(4 - (encoded.length % 4));
-            }
             resolve(encoded);
         };
         reader.onerror = error => reject(error);
@@ -31,30 +28,26 @@ async function uploadDataAndFileToGoogle() {
     // Route to Primary if HQ is in Raipur Division list, else to Other
     let targetUrl = ALLOWED_HQS.includes(currentHq) ? PRIMARY_URL : OTHER_URL;
 
-    // --- GATHER FORM DATA ---
+    // --- GATHER FORM DATA (23-Column Compatible) ---
     const formData = {
-        lpId: document.getElementById('lpId').value.trim(),
-        lpName: document.getElementById('lpName').value.trim(),
-        lpDesg: document.getElementById('lpDesg').value.trim(),
-        lpGroupCli: document.getElementById('lpGroupCli').value.trim(),
-        lpCugNumber: document.getElementById('lpCugNumber').value.trim(),
-        alpId: document.getElementById('alpId').value.trim(),
-        alpName: document.getElementById('alpName').value.trim(),
-        alpDesg: document.getElementById('alpDesg').value.trim(),
-        alpGroupCli: document.getElementById('alpGroupCli').value.trim(),
-        alpCugNumber: document.getElementById('alpCugNumber').value.trim(),
-        locoNumber: document.getElementById('locoNumber').value.trim(),
-        trainNumber: document.getElementById('trainNumber').value.trim(),
-        rakeType: document.getElementById('rakeType').value,
-        maxPermissibleSpeed: document.getElementById('maxPermissibleSpeed').value,
-        section: document.getElementById('section').value,
-        fromSection: document.getElementById('fromSection').value.toUpperCase(),
-        toSection: document.getElementById('toSection').value.toUpperCase(),
-        spmType: document.getElementById('spmType').value,
-        cliName: document.getElementById('cliName').value.trim(),
-        cliHq: currentHq,
+        cliIdInput: document.getElementById('cliIdInput')?.value.trim() || 'N/A', // Col B
+        cliName: document.getElementById('cliName').value.trim(),                // Col C
+        lpId: document.getElementById('lpId').value.trim(),                     // Col D
+        lpName: document.getElementById('lpName').value.trim(),                 // Col E
+        lpGroupCli: document.getElementById('lpGroupCli').value.trim(),         // Col G
+        alpId: document.getElementById('alpId').value.trim(),                   // Col H
+        alpName: document.getElementById('alpName').value.trim(),               // Col I
+        alpGroupCli: document.getElementById('alpGroupCli').value.trim(),       // Col J
+        locoNumber: document.getElementById('locoNumber').value.trim(),         // Col K
+        trainNumber: document.getElementById('trainNumber').value.trim(),       // Col L
+        section: document.getElementById('section').value,                     // Col M
+        fromSection: document.getElementById('fromSection').value.toUpperCase(), // Col N
+        toSection: document.getElementById('toSection').value.toUpperCase(),     // Col O
+        spmType: document.getElementById('spmType').value,                     // Col P
+        // Day/Night and StopsJson logic is handled in the script/googlesheet.js, 
+        // but adding basic placeholders to ensure object structure matches.
         fromDateTime: document.getElementById('fromDateTime').value,
-        toDateTime: document.getElementById('toDateTime').value,
+        cliHq: currentHq
     };
 
     const spmFile = document.getElementById('spmFile').files[0];
@@ -71,9 +64,10 @@ async function uploadDataAndFileToGoogle() {
     try {
         await fetch(targetUrl, {
             method: 'POST',
+            mode: 'no-cors', 
             body: JSON.stringify(formData)
         });
-        return { status: 'success', message: 'Routed to E-Garud System.' };
+        return { status: 'success', message: 'File Uploaded and Routed to E-Garud System.' };
     } catch (e) {
         console.error("Upload Error:", e);
         return { status: 'error', message: e.message };
