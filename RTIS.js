@@ -1,13 +1,7 @@
-// --- RTIS.js (Final Corrected for 27792.csv - Meters Logic) ---
+// --- RTIS.js (Strictly for Logging Time format: YYYY-MM-DD) ---
 
 const spmConfig = {
     type: 'RTIS',
-    columnNames: {
-        time: 'Logging Time',
-        distance: 'distFromPrevLatLng',
-        speed: 'Speed',
-        event: 'Event'
-    },
     eventCodes: {
         zeroSpeed: 'STOP'
     },
@@ -22,17 +16,7 @@ let speedChartInstance = null;
 let stopChartInstance = null;
 
 // --- Helper Functions ---
-function parseRTISDate(value) {
-    if (!value) return null;
-    const str = String(value).trim();
-    // Try standard ISO first
-    let d = new Date(str);
-    if (!isNaN(d.getTime())) return d;
-    return null;
-}
-
 function getSpeedAtDistanceBeforeStop(stopIndex, stopMeters, data, targetMeters) {
-    // Both stopMeters and data[i].Distance are in Meters now.
     for (let i = stopIndex - 1; i >= 0; i--) {
         const distDiff = stopMeters - data[i].Distance;
         if (distDiff >= targetMeters) return Number(data[i].Speed) || 0;
@@ -42,7 +26,7 @@ function getSpeedAtDistanceBeforeStop(stopIndex, stopMeters, data, targetMeters)
 
 // --- MAIN WRAPPER FUNCTION ---
 window.analyzeSPMData = async function(spmFile, cugData) {
-    console.log("RTIS Analysis Started (Corrected: Distance is in Meters)...");
+    console.log("RTIS Analysis Started (Strict Mode for 27792.csv)...");
 
     if (speedChartInstance) { speedChartInstance.destroy(); speedChartInstance = null; }
     if (stopChartInstance) { stopChartInstance.destroy(); stopChartInstance = null; }
@@ -51,30 +35,21 @@ window.analyzeSPMData = async function(spmFile, cugData) {
         // 1. Gather Inputs
         const lpId = document.getElementById('lpId').value.trim();
         const lpName = document.getElementById('lpName').value.trim();
-        const lpDesg = document.getElementById('lpDesg').value.trim();
-        const lpGroupCli = document.getElementById('lpGroupCli').value.trim();
-        const lpCugNumber = document.getElementById('lpCugNumber').value.trim();
-        const alpId = document.getElementById('alpId').value.trim();
-        const alpName = document.getElementById('alpName').value.trim();
-        const alpDesg = document.getElementById('alpDesg').value.trim();
-        const alpGroupCli = document.getElementById('alpGroupCli').value.trim();
-        const alpCugNumber = document.getElementById('alpCugNumber').value.trim();
         const locoNumber = document.getElementById('locoNumber').value.trim();
         const trainNumber = document.getElementById('trainNumber').value.trim();
-        const rakeType = document.getElementById('rakeType').value;
-        const maxPermissibleSpeed = parseInt(document.getElementById('maxPermissibleSpeed').value);
         const section = document.getElementById('section').value;
         const fromSection = document.getElementById('fromSection').value.toUpperCase();
         const toSection = document.getElementById('toSection').value.toUpperCase();
         const routeSection = `${fromSection}-${toSection}`;
-        const spmType = document.getElementById('spmType').value;
         const cliName = document.getElementById('cliName').value.trim();
         const fromDateTime = new Date(document.getElementById('fromDateTime').value);
         const toDateTime = new Date(document.getElementById('toDateTime').value);
+        const rakeType = document.getElementById('rakeType').value;
+        const maxPermissibleSpeed = parseInt(document.getElementById('maxPermissibleSpeed').value);
 
-        const fileExt = spmFile.name.split('.').pop().toLowerCase();
-        
         // 2. Process CUG Data
+        const lpCugNumber = document.getElementById('lpCugNumber').value.trim();
+        const alpCugNumber = document.getElementById('alpCugNumber').value.trim();
         const lpCalls = cugData.filter(call => call['CUG MOBILE NO'] === lpCugNumber && call.startDateTime >= fromDateTime && call.startDateTime <= toDateTime);
         const alpCalls = cugData.filter(call => call['CUG MOBILE NO'] === alpCugNumber && call.startDateTime >= fromDateTime && call.startDateTime <= toDateTime);
 
@@ -82,83 +57,74 @@ window.analyzeSPMData = async function(spmFile, cugData) {
         const reader = new FileReader();
         reader.onload = async (event) => {
             try {
-                let jsonDataRaw = [];
-                if (fileExt === 'csv') {
-                    const csvText = event.target.result;
-                    const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true, dynamicTyping: false });
-                    jsonDataRaw = parsed.data || [];
-                } else {
-                    const data = new Uint8Array(event.target.result);
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    jsonDataRaw = XLSX.utils.sheet_to_json(sheet, { defval: null });
-                }
+                const csvText = event.target.result;
+                const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true, dynamicTyping: false });
+                const jsonDataRaw = parsed.data || [];
 
-                if (jsonDataRaw.length === 0) throw new Error("Empty file.");
+                if (jsonDataRaw.length === 0) throw new Error("File is empty.");
 
-                // Map Columns
-                const sampleRow = jsonDataRaw[0];
-                const timeKey = Object.keys(sampleRow).find(k => k.toLowerCase().includes('time')) || 'Logging Time';
-                const speedKey = Object.keys(sampleRow).find(k => k.toLowerCase() === 'speed') || 'Speed';
-                const distKey = Object.keys(sampleRow).find(k => k.toLowerCase().includes('distfromprev')) || 'distFromPrevLatLng';
+                // --- STRICT MAPPING FOR 27792.csv ---
+                // Header names exactly as per your file
+                const timeKey = 'Logging Time';
+                const speedKey = 'Speed';
+                const distKey = 'distFromPrevLatLng'; 
 
-                console.log("Mapped Keys:", { timeKey, speedKey, distKey });
-
-                let cumulativeDistanceMeters = 0; // Cumulative distance in Meters
+                let cumulativeDistanceMeters = 0;
 
                 const parsedData = jsonDataRaw.map((row) => {
                     const timeValue = row[timeKey];
-                    let parsedTime = parseRTISDate(timeValue);
-                    if (!parsedTime) return null;
+                    if (!timeValue) return null;
+
+                    // STRICT DATE PARSING for 'YYYY-MM-DD HH:MM:SS'
+                    // Example: 2026-02-01 00:00:00
+                    const parsedTime = new Date(timeValue.trim().replace(' ', 'T')); 
+
+                    if (isNaN(parsedTime.getTime())) return null;
 
                     let speedVal = parseFloat(row[speedKey]) || 0;
                     if (Math.abs(speedVal) < 0.5) speedVal = 0; else speedVal = Math.round(speedVal);
 
-                    // --- CRITICAL FIX: Distance is in Meters ---
+                    // Distance in Meters (Direct from file)
                     let distIncr = parseFloat(row[distKey]) || 0;
                     cumulativeDistanceMeters += distIncr;
 
                     return {
                         Time: parsedTime,
-                        Distance: cumulativeDistanceMeters, // Keeping it in Meters for easy calc
+                        Distance: cumulativeDistanceMeters, // Meters
                         Speed: speedVal,
                         EventGn: (speedVal === 0) ? spmConfig.eventCodes.zeroSpeed : ''
                     };
                 }).filter(r => r && r.Time >= fromDateTime && r.Time <= toDateTime);
 
-                if (parsedData.length === 0) throw new Error("No data in selected time range.");
+                if (parsedData.length === 0) throw new Error("No data in selected time range. Check From/To Date.");
                 console.log(`Loaded ${parsedData.length} rows.`);
 
-                // 4. Station Logic
+                // 4. Normalization (Align to From Station)
                 const stationMap = new Map();
                 window.stationSignalData.filter(r => r.SECTION === section).forEach(r => {
+                    // Database distance is likely in Meters based on previous conversations
                     if (!stationMap.has(r.STATION)) stationMap.set(r.STATION, { 
                         name: r.STATION, 
-                        distance: parseFloat(r['CUMMULATIVE DISTANT(IN Meter)']) // Station distance in Meters
+                        distance: parseFloat(r['CUMMULATIVE DISTANT(IN Meter)'])
                     }); 
                 });
                 const stationsData = Array.from(stationMap.values());
                 const fromStationObj = stationsData.find(s => s.name === fromSection);
-                if (!fromStationObj) throw new Error("From Station not found.");
+                if (!fromStationObj) throw new Error("From Station not found in Station Database.");
                 
                 const fromDistanceMeters = fromStationObj.distance;
                 
-                // Normalization (Align File Start to FromStation)
-                // parsedData[0].Distance is File-Relative.
-                // We want: NormalizedDistance = FileDistance (relative to start of selection)
-                // And for station matching: AbsoluteDistance = fromDistanceMeters + NormalizedDistance
-                
+                // Align start of file data to From Station
                 const startFileDist = parsedData[0].Distance;
                 parsedData.forEach(r => {
-                    // Distance traveled since selection start
-                    r.Distance = r.Distance - startFileDist; 
+                    r.Distance = r.Distance - startFileDist; // Relative Meters
                 });
 
-                // Route Stations (Relative Meters from FromStation)
+                // Route Stations (Relative Meters)
                 const fIdx = stationsData.findIndex(s => s.name === fromSection);
                 const tIdx = stationsData.findIndex(s => s.name === toSection);
                 const routeStations = stationsData.slice(Math.min(fIdx, tIdx), Math.max(fIdx, tIdx) + 1).map(s => ({
-                    name: s.name, distance: Math.abs(s.distance - fromDistanceMeters) // Relative Meters
+                    name: s.name, distance: Math.abs(s.distance - fromDistanceMeters)
                 }));
 
                 // 5. Analysis
@@ -169,7 +135,6 @@ window.analyzeSPMData = async function(spmFile, cugData) {
                     if (r.Speed > maxPermissibleSpeed) {
                          let sec = 'Unknown';
                          for(let k=0; k<routeStations.length-1; k++) {
-                             // Compare Meters vs Meters
                              if(r.Distance >= routeStations[k].distance && r.Distance < routeStations[k+1].distance) {
                                  sec = `${routeStations[k].name}-${routeStations[k+1].name}`; break;
                              }
@@ -197,7 +162,7 @@ window.analyzeSPMData = async function(spmFile, cugData) {
                             stops.push({ 
                                 index: parsedData.indexOf(currGrp[0]), 
                                 time: s.Time, 
-                                kilometer: s.Distance, // Meters
+                                kilometer: s.Distance, 
                                 timeString: s.Time.toLocaleString(),
                                 duration: stopDur
                             });
@@ -212,7 +177,7 @@ window.analyzeSPMData = async function(spmFile, cugData) {
                     const nearest = routeStations.find(st => Math.abs(st.distance - s.kilometer) < 500);
                     if(nearest) loc = nearest.name;
                     
-                    const dists = [1000, 800, 500, 100, 50]; // Meters
+                    const dists = [1000, 800, 500, 100, 50]; 
                     const speedsBefore = dists.map(d => {
                         const sp = getSpeedAtDistanceBeforeStop(s.index, s.kilometer, parsedData, d);
                         return sp ? sp.toFixed(0) : 'N/A';
@@ -233,15 +198,18 @@ window.analyzeSPMData = async function(spmFile, cugData) {
                 });
                 const speedChartImg = speedChartInstance.toBase64Image(); 
 
-                // --- Final Data ---
+                // --- Final Data (Average Speed Fix) ---
                 const totalTimeHours = (parsedData[parsedData.length-1].Time - parsedData[0].Time) / 3600000;
-                const totalDistKm = (parsedData[parsedData.length-1].Distance - parsedData[0].Distance) / 1000; // Convert Meters to KM for report
+                // Distance is in Meters, convert to KM for Avg Speed
+                const totalDistKm = (parsedData[parsedData.length-1].Distance - parsedData[0].Distance) / 1000;
                 const avgSpeedVal = totalTimeHours > 0 ? (totalDistKm / totalTimeHours).toFixed(2) : "0";
 
                 const reportData = {
                     trainDetails: [
-                        { label: 'Loco', value: locoNumber },
-                        { label: 'Train', value: trainNumber },
+                        { label: 'Loco Number', value: locoNumber },
+                        { label: 'Train Number', value: trainNumber },
+                        { label: 'Type of Rake', value: rakeType },
+                        { label: 'Max Permissible Speed', value: maxPermissibleSpeed + ' kmph' },
                         { label: 'Section', value: section },
                         { label: 'Analysis By', value: cliName }
                     ],
@@ -265,8 +233,7 @@ window.analyzeSPMData = async function(spmFile, cugData) {
             }
         };
 
-        if (fileExt === 'csv') reader.readAsText(spmFile);
-        else reader.readAsArrayBuffer(spmFile);
+        reader.readAsText(spmFile);
 
     } catch (error) {
         console.error("Main Error:", error);
