@@ -31,18 +31,16 @@
     --h4-highlight-bg: rgba(251, 191, 36, 0.2); 
 }
 body.day-mode {
-    --bg-gradient: linear-gradient(135deg, #82f9bf, #f8f9fa);
-    --text-color: #0c0c0d;
-    --text-muted: #495057;
-    --accent-color: #0056b3;
-    --accent-glow: rgba(0, 86, 179, 0.3);
-    --border-color: rgba(0, 86, 179, 0.5); 
-    --box-bg: rgb(255, 255, 255);
-    --input-bg: #60caffc1;
-    --success-color: #198754;
-    --danger-color: #dc3545;
-    --h3-highlight-bg: rgba(224, 242, 254, 0.8); /* Light Sky Blue */
-    --h4-highlight-bg: rgba(220, 252, 231, 0.8); /* Light Mint Green */
+    --bg-gradient: linear-gradient(135deg, #fdf4ff, #fff7ed);
+    --text-color: #450a0a;
+    --text-muted: #6b2121;
+    --accent-color: #991b1b; /* Rich Red/Maroon */
+    --accent-glow: rgba(153, 27, 27, 0.2);
+    --border-color: rgba(153, 27, 27, 0.4); 
+    --box-bg: #ffffff;
+    --input-bg: #fff1f1;
+    --h3-highlight-bg: rgba(254, 243, 199, 0.8);
+    --h4-highlight-bg: rgba(254, 226, 226, 0.8);
 }
 
 /* --- 2. General Body and Layout Styles --- */
@@ -80,11 +78,10 @@ body {
 h1 {
     color: var(--accent-color);
     text-align: center;
-    font-size: 3rem;
-    font-weight: 700;
-    margin-bottom: 5px;
-    letter-spacing: 2px;
-    text-shadow: 0 0 15px var(--accent-glow);
+    font-size: 3.5rem; /* Thoda bada size */
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow);
+    font-family: 'Georgia', serif; /* Classic font */
 }
 
 h3, h4 {
@@ -130,13 +127,10 @@ h2 {
 
 .box {
     background: var(--box-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border: 2px solid var(--border-color); /* Thoda mota border gold look ke liye */
+    border-radius: 12px;
     padding: 20px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    transition: background 0.5s, border 0.5s;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
 .form-group {
