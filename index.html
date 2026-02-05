@@ -16,374 +16,244 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
     <style>
-/* --- 1. Modern CSS Variables (E-GARUD Theme) --- */
-:root {
-    --bg-gradient: linear-gradient(160deg, #020024 0%, #090979 35%, #00d4ff 100%);
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-    --text-color: #ffffff;
-    --text-muted: #a0a0a0;
-    --accent-color: #00d4ff;
-    --accent-hover: #0099cc;
-    --success-color: #00ff88;
-    --danger-color: #ff4d4d;
-    --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    --font-main: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
-}
+        /* Modern E-GARUD Theme */
+        :root {
+            --bg-gradient: linear-gradient(160deg, #020024 0%, #090979 35%, #00d4ff 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent-color: #00d4ff;
+            --danger-color: #ff4d4d;
+            --font-main: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
+        }
 
-body.day-mode {
-    --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: 1px solid rgba(0, 0, 0, 0.1);
-    --text-color: #1a1a1a;
-    --text-muted: #555555;
-    --accent-color: #0056b3;
-    --accent-hover: #004494;
-    --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-}
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
 
-/* --- 2. Layout --- */
-body {
-    font-family: var(--font-main);
-    background: var(--bg-gradient);
-    color: var(--text-color);
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* Prevent vertical centering */
-    transition: background 0.5s ease;
-}
+        .container {
+            width: 100%;
+            max-width: 1250px;
+            padding: 30px;
+        }
 
-.container {
-    width: 100%;
-    max-width: 1250px;
-    padding: 30px;
-    /* Glassmorphism Container */
-    background: transparent;
-}
+        .logo {
+            display: block;
+            margin: 0 auto 20px auto;
+            width: 280px;
+            height: auto;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.4));
+        }
 
-/* --- 3. Header & Branding --- */
-.logo {
-    display: block;
-    margin: 0 auto 20px auto;
-    width: 280px;
-    height: auto;
-    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.4));
-}
+        .header-title h1 {
+            font-size: 3.5rem;
+            margin: 0;
+            text-align: center;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+        }
 
-.header-title h1 {
-    font-size: 3.5rem;
-    margin: 0;
-    text-align: center;
-    color: var(--accent-color);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    text-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
-}
+        .header-sub {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
 
-.header-sub {
-    text-align: center;
-    margin-top: 10px;
-    margin-bottom: 30px;
-}
+        .header-sub h3 {
+            font-size: 1.2rem;
+            margin: 5px 0;
+            background: var(--glass-bg);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: var(--glass-border);
+        }
 
-.header-sub h3 {
-    font-size: 1.2rem;
-    color: var(--text-color);
-    margin: 5px 0;
-    font-weight: 600;
-    background: var(--glass-bg);
-    display: inline-block;
-    padding: 5px 15px;
-    border-radius: 20px;
-    border: var(--glass-border);
-}
+        .header-sub h4 {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 5px 0;
+            font-weight: 400;
+        }
 
-.header-sub h4 {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    margin: 5px 0;
-    font-weight: 400;
-}
+        /* Glass Box */
+        .box {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
 
-.manual-link {
-    display: block;
-    text-align: center;
-    color: var(--success-color);
-    text-decoration: none;
-    font-weight: bold;
-    margin-bottom: 20px;
-    font-size: 0.95rem;
-}
-.manual-link:hover { text-decoration: underline; }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
 
-/* --- 4. Cards/Boxes --- */
-.box {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: var(--glass-border);
-    border-radius: 16px;
-    padding: 25px;
-    box-shadow: var(--card-shadow);
-    margin-bottom: 25px;
-    transition: transform 0.3s ease;
-}
+        .section-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+        }
 
-.box:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent-color);
-}
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
 
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    border-bottom: 1px solid var(--glass-border);
-    padding-bottom: 10px;
-}
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+        }
 
-.section-header h2 {
-    margin: 0;
-    font-size: 1.3rem;
-    color: var(--accent-color);
-    text-transform: uppercase;
-}
+        .form-group {
+            margin-bottom: 15px;
+        }
 
-/* --- 5. Form Grid System --- */
-.form-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
 
-.form-section {
-    flex: 1;
-    min-width: 300px; /* Responsive */
-}
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
 
-.form-group {
-    margin-bottom: 15px;
-}
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
 
-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: var(--text-color);
-    font-size: 0.9rem;
-    letter-spacing: 0.5px;
-}
+        input[readonly] {
+            background: rgba(255, 255, 255, 0.05);
+            cursor: not-allowed;
+            border-style: dashed;
+        }
 
-/* --- 6. Inputs & Controls --- */
-input, select {
-    width: 100%;
-    padding: 12px 15px;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    color: #fff;
-    font-size: 1rem;
-    box-sizing: border-box;
-    transition: all 0.3s ease;
-}
+        button.manual-entry-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
 
-body.day-mode input, body.day-mode select {
-    background: #ffffff;
-    border: 1px solid #ced4da;
-    color: #333;
-}
+        button[type="submit"] {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(90deg, var(--accent-color), #0077cc);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+            margin-top: 10px;
+        }
 
-input:focus, select:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-}
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.6);
+        }
 
-input[readonly] {
-    background: rgba(255, 255, 255, 0.05);
-    cursor: not-allowed;
-    border-style: dashed;
-}
+        /* History List */
+        #lp-abnormalities-list, #lp-abnormality-summary-list {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        #lp-abnormality-summary-list li {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 4px 0;
+            display: flex;
+            justify-content: space-between;
+        }
 
-button.manual-entry-btn {
-    background: var(--danger-color);
-    color: white;
-    border: none;
-    padding: 5px 12px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-}
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast-message {
+            background: #fff;
+            color: #333;
+            padding: 15px 25px;
+            border-radius: 8px;
+            border-left: 5px solid var(--accent-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.4s ease;
+            font-weight: 600;
+        }
+        .toast-message.show { opacity: 1; transform: translateX(0); }
 
-button[type="submit"] {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(90deg, var(--accent-color), #0077cc);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    margin-top: 10px;
-}
-
-button[type="submit"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.6);
-}
-
-/* --- 7. History & Summary Lists --- */
-#lp-abnormalities-list, #lp-abnormality-summary-list {
-    font-size: 0.9rem;
-    line-height: 1.5;
-}
-#lp-abnormality-summary-list li {
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding: 4px 0;
-    display: flex;
-    justify-content: space-between;
-}
-body.day-mode #lp-abnormality-summary-list li {
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-}
-
-/* --- 8. Theme Switcher (Top Right) --- */
-.theme-switch-wrapper {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    z-index: 100;
-}
-
-.top-right-nav-link {
-    color: var(--accent-color);
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 0.9rem;
-    background: var(--glass-bg);
-    padding: 8px 15px;
-    border-radius: 20px;
-    border: var(--glass-border);
-}
-
-.theme-switch {
-    display: inline-block;
-    height: 30px;
-    position: relative;
-    width: 60px;
-}
-.theme-switch input { display:none; }
-.slider {
-    background-color: #ccc;
-    bottom: 0;
-    cursor: pointer;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-    transition: .4s;
-    border-radius: 34px;
-}
-.slider:before {
-    background-color: #fff;
-    bottom: 3px;
-    content: "";
-    height: 24px;
-    left: 4px;
-    position: absolute;
-    transition: .4s;
-    width: 24px;
-    border-radius: 50%;
-}
-input:checked + .slider { background-color: var(--accent-color); }
-input:checked + .slider:before { transform: translateX(28px); }
-
-/* --- 9. Toast Notification --- */
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.toast-message {
-    background: #fff;
-    color: #333;
-    padding: 15px 25px;
-    border-radius: 8px;
-    border-left: 5px solid var(--accent-color);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateX(100%);
-    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-    font-weight: 600;
-    min-width: 300px;
-}
-.toast-message.show { opacity: 1; transform: translateX(0); }
-
-/* --- 10. Train Loader (Kept as requested) --- */
-.loading-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    justify-content: center;
-    align-items: center;
-    z-index: 3000;
-    flex-direction: column;
-}
-.train-loader-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; }
-.track { position: absolute; width: 180px; height: 180px; border: 4px dashed rgba(255, 255, 255, 0.3); border-radius: 50%; }
-.train-arm { width: 180px; height: 180px; position: absolute; animation: moveOnTrack 3s linear infinite; }
-@keyframes moveOnTrack { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.train { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; animation: stayUpright 3s linear infinite; }
-@keyframes stayUpright { from { transform: translateX(-50%) rotate(0deg); } to { transform: translateX(-50%) rotate(-360deg); } }
-.engine-body { width: 40px; height: 20px; background: var(--danger-color); border-radius: 4px 4px 0 0; position: relative; }
-.engine-cabin { width: 20px; height: 15px; background: var(--accent-color); position: absolute; bottom: 20px; right: 0; border-radius: 2px; }
-.coach { width: 35px; height: 18px; background: var(--accent-color); margin-left: 2px; border-radius: 2px; }
-.loading-text { color: white; margin-top: 20px; font-size: 1.2rem; letter-spacing: 1px; }
-
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            flex-direction: column;
+        }
+        .loading-text { color: white; margin-top: 20px; font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <img src="railway logo.png" alt="Railway Logo" class="logo">
-
-        <div class="theme-switch-wrapper">
-            <a href="graph.html" target="_blank" class="top-right-nav-link">Signal Wise Analysis</a>
-            <label class="theme-switch" for="checkbox">
-                <input type="checkbox" id="checkbox" />
-                <div class="slider round"></div>
-            </label>
-        </div>
-
         <div class="header-title">
             <h1>E-GARUD (ई-गरुड़)</h1>
         </div>
         <div class="header-sub">
             <h3>ON BOARD CREW DRIVING MONITORING SYSTEM</h3><br>
             <h4>TELOC CELL, Electrical(OP) RAIPUR DIVISION, S.E.C.R.<br>
-                (TELOC प्रकोष्ठ, विद्युत (परिचालन) विभाग, रायपुर मंडल, दक्षिण पूर्व मध्य रेलवे)</h4>
+            (TELOC प्रकोष्ठ, विद्युत (परिचालन) विभाग, रायपुर मंडल, दक्षिण पूर्व मध्य रेलवे)</h4>
         </div>
-
-        <a href="manual.html" target="_blank" class="manual-link">Need Help? View the User Manual</a>
 
         <form id="spmForm">
             <div class="form-row">
@@ -393,40 +263,20 @@ input:checked + .slider:before { transform: translateX(28px); }
                         <button type="button" id="manualLpBtn" class="manual-entry-btn">Manual Entry</button>
                     </div>
                     <div class="box">
-                        <div class="form-group">
-                            <label for="lpId">LP ID</label>
-                            <input type="text" id="lpId" name="lpId" required placeholder="Enter ID (e.g., R1234)">
-                        </div>
-                        <div class="form-group">
-                            <label for="lpName">LP Name</label>
-                            <input type="text" id="lpName" name="lpName" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="lpDesg">Designation</label>
-                            <input type="text" id="lpDesg" name="lpDesg" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="lpGroupCli">Group CLI</label>
-                            <input type="text" id="lpGroupCli" name="lpGroupCli" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="lpCugNumber">CUG Number</label>
-                            <input type="text" id="lpCugNumber" name="lpCugNumber" readonly>
-                        </div>
+                        <div class="form-group"><label>LP ID</label><input type="text" id="lpId" required placeholder="Enter ID (e.g., R1234)"></div>
+                        <div class="form-group"><label>LP Name</label><input type="text" id="lpName" readonly></div>
+                        <div class="form-group"><label>Designation</label><input type="text" id="lpDesg" readonly></div>
+                        <div class="form-group"><label>Group CLI</label><input type="text" id="lpGroupCli" readonly></div>
+                        <div class="form-group"><label>CUG Number</label><input type="text" id="lpCugNumber" readonly></div>
                     </div>
 
-                    <div class="section-header">
-                        <h2>History Profile</h2>
-                    </div>
+                    <div class="section-header"><h2>History Profile</h2></div>
+                    <div class="box"><div id="lp-abnormalities-list">Enter LP ID to view records.</div></div>
                     <div class="box">
-                        <div id="lp-abnormalities-list">Enter LP ID to view previous records.</div>
-                    </div>
-                    <div class="box" id="lp-abnormality-summary-container">
-                        <ul id="lp-abnormality-summary-list" style="list-style: none; padding: 0;">
+                        <ul id="lp-abnormality-summary-list">
                             <li>BFT not done: <strong id="bft-not-done-count">0</strong></li>
                             <li>BPT not done: <strong id="bpt-not-done-count">0</strong></li>
-                            <li>BFT/Rule Violation: <strong id="bft-rule-count">0</strong></li>
-                            <li>BPT/Rule Violation: <strong id="bpt-rule-count">0</strong></li>
+                            <li>Rule Violation: <strong id="bft-rule-count">0</strong></li>
                             <li>Late Controlling: <strong id="late-controlling-count">0</strong></li>
                             <li>Overspeeding: <strong id="overspeeding-count">0</strong></li>
                             <li>Others: <strong id="others-abnormalities-count">0</strong></li>
@@ -440,78 +290,45 @@ input:checked + .slider:before { transform: translateX(28px); }
                         <button type="button" id="manualAlpBtn" class="manual-entry-btn">Manual Entry</button>
                     </div>
                     <div class="box">
-                        <div class="form-group">
-                            <label for="alpId">ALP ID</label>
-                            <input type="text" id="alpId" name="alpId" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="alpName">ALP Name</label>
-                            <input type="text" id="alpName" name="alpName" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="alpDesg">Designation</label>
-                            <input type="text" id="alpDesg" name="alpDesg" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="alpGroupCli">Group CLI</label>
-                            <input type="text" id="alpGroupCli" name="alpGroupCli" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="alpCugNumber">CUG Number</label>
-                            <input type="text" id="alpCugNumber" name="alpCugNumber" readonly>
-                        </div>
+                        <div class="form-group"><label>ALP ID</label><input type="text" id="alpId" required></div>
+                        <div class="form-group"><label>ALP Name</label><input type="text" id="alpName" readonly></div>
+                        <div class="form-group"><label>Designation</label><input type="text" id="alpDesg" readonly></div>
+                        <div class="form-group"><label>Group CLI</label><input type="text" id="alpGroupCli" readonly></div>
+                        <div class="form-group"><label>CUG Number</label><input type="text" id="alpCugNumber" readonly></div>
                     </div>
 
-                    <div class="section-header" style="margin-top: 30px;">
-                        <h2>TRAIN & SECTION</h2>
-                    </div>
+                    <div class="section-header" style="margin-top: 30px;"><h2>TRAIN & SECTION</h2></div>
                     <div class="box">
+                        <div class="form-group"><label>Loco Number</label><input type="text" id="locoNumber" required></div>
+                        <div class="form-group"><label>Train Number</label><input type="text" id="trainNumber" required></div>
                         <div class="form-group">
-                            <label for="locoNumber">Loco Number</label>
-                            <input type="text" id="locoNumber" name="locoNumber" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="trainNumber">Train Number</label>
-                            <input type="text" id="trainNumber" name="trainNumber" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="rakeType">Type of Rake</label>
-                            <select id="rakeType" name="rakeType" required>
-                                <option value="" disabled selected>Select Rake Type</option>
+                            <label>Type of Rake</label>
+                            <select id="rakeType" required>
+                                <option value="" disabled selected>Select</option>
                                 <option value="GOODS">GOODS</option>
                                 <option value="COACHING">COACHING</option>
                                 <option value="MEMU">MEMU</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="section">Section</label>
-                            <select id="section" name="section" required>
-                                <option value="" disabled selected>Select Section</option>
-                            </select>
+                            <label>Section</label>
+                            <select id="section" required><option value="" disabled selected>Select</option></select>
                         </div>
                         <div class="form-row">
-                            <div class="form-group" style="flex:1">
-                                <label for="fromSection">From</label>
-                                <select id="fromSection" name="fromSection" required></select>
-                            </div>
-                            <div class="form-group" style="flex:1">
-                                <label for="toSection">To</label>
-                                <select id="toSection" name="toSection" required></select>
-                            </div>
+                            <div class="form-group" style="flex:1"><label>From</label><select id="fromSection" required></select></div>
+                            <div class="form-group" style="flex:1"><label>To</label><select id="toSection" required></select></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="section-header">
-                <h2>ANALYSIS PARAMETERS</h2>
-            </div>
+            <div class="section-header"><h2>ANALYSIS PARAMETERS</h2></div>
             <div class="box">
                 <div class="form-row">
                     <div class="form-group" style="flex:1">
-                        <label for="spmType">SPM Type</label>
-                        <select id="spmType" name="spmType" required>
-                            <option value="" disabled selected>Select SPM Type</option>
+                        <label>SPM Type</label>
+                        <select id="spmType" required>
+                            <option value="" disabled selected>Select Type</option>
                             <option value="Laxven">Laxven</option>
                             <option value="Medha">Medha</option>
                             <option value="Telpro">Telpro</option>
@@ -522,51 +339,31 @@ input:checked + .slider:before { transform: translateX(28px); }
                         </select>
                     </div>
                     <div class="form-group" style="flex:1">
-                        <label for="maxPermissibleSpeed">Max Speed (kmph)</label>
-                        <select id="maxPermissibleSpeed" name="maxPermissibleSpeed" required>
-                            <option value="75">75 kmph</option>
-                            <option value="100">100 kmph</option>
-                            <option value="110">110 kmph</option>
-                            <option value="130">130 kmph</option>
-                            </select>
+                        <label>Max Speed (kmph)</label>
+                        <select id="maxPermissibleSpeed" required>
+                            <option value="60">60</option>
+                            <option value="75">75</option>
+                            <option value="100">100</option>
+                            <option value="110">110</option>
+                            <option value="130">130</option>
+                        </select>
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group" style="flex:1">
-                        <label for="cliIdInput">CLI ID</label>
-                        <input type="text" id="cliIdInput" name="cliIdInput" placeholder="Enter CLI ID" required>
-                    </div>
-                    <div class="form-group" style="flex:1">
-                        <label for="cliName">CLI Name</label>
-                        <input type="text" id="cliName" name="cliName" placeholder="Auto-filled" readonly>
-                    </div>
-                    <div class="form-group" style="flex:1">
-                        <label for="cliHqDisplay">CLI HQ</label>
-                        <input type="text" id="cliHqDisplay" name="cliHqDisplay" placeholder="Auto-filled" readonly>
-                    </div>
+                    <div class="form-group" style="flex:1"><label>CLI ID</label><input type="text" id="cliIdInput" required placeholder="Enter CLI ID"></div>
+                    <div class="form-group" style="flex:1"><label>CLI Name</label><input type="text" id="cliName" readonly placeholder="Auto-filled"></div>
+                    <div class="form-group" style="flex:1"><label>CLI HQ</label><input type="text" id="cliHqDisplay" readonly placeholder="Auto-filled"></div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group" style="flex:1">
-                        <label for="fromDateTime">From Date & Time</label>
-                        <input type="datetime-local" id="fromDateTime" name="fromDateTime" required>
-                    </div>
-                    <div class="form-group" style="flex:1">
-                        <label for="toDateTime">To Date & Time</label>
-                        <input type="datetime-local" id="toDateTime" name="toDateTime" required>
-                    </div>
+                    <div class="form-group" style="flex:1"><label>From Date & Time</label><input type="datetime-local" id="fromDateTime" required></div>
+                    <div class="form-group" style="flex:1"><label>To Date & Time</label><input type="datetime-local" id="toDateTime" required></div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group" style="flex:1">
-                        <label for="spmFile">Upload SPM File</label>
-                        <input type="file" id="spmFile" name="spmFile" accept=".xlsx,.xls,.csv,.txt,.pdf" required>
-                    </div>
-                    <div class="form-group" style="flex:1">
-                        <label for="cugFile">Upload CUG.csv (Optional)</label>
-                        <input type="file" id="cugFile" name="cugFile" accept=".csv">
-                    </div>
+                    <div class="form-group" style="flex:1"><label>Upload SPM File</label><input type="file" id="spmFile" required></div>
+                    <div class="form-group" style="flex:1"><label>Upload CUG.csv (Optional)</label><input type="file" id="cugFile" accept=".csv"></div>
                 </div>
 
                 <button type="submit">ANALYZE SPM DATA</button>
@@ -574,237 +371,87 @@ input:checked + .slider:before { transform: translateX(28px); }
         </form>
     </div>
 
-    <canvas id="speedChart" style="display: none;"></canvas>
-    <canvas id="stopChart" style="display: none;"></canvas>
-
     <div id="toast-container"></div>
-
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="train-loader-container">
-            <div class="track"></div>
-            <div class="train-arm">
-                <div class="train">
-                    <div class="engine">
-                        <div class="engine-body"></div>
-                        <div class="engine-cabin"></div>
-                    </div>
-                    <div class="coach"></div>
-                    <div class="coach"></div>
-                </div>
-            </div>
-        </div>
-        <div class="loading-text">Processing Data...</div>
+        <div class="loading-text">Processing...</div>
     </div>
+    <canvas id="speedChart" style="display:none"></canvas>
+    <canvas id="stopChart" style="display:none"></canvas>
 
     <script>
-    // --- 1. GLOBAL CONFIG & UTILS ---
-    window.toggleLoadingOverlay = function(show) {
-        document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-    };
-
-    function showToast(message) {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'toast-message';
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            toast.addEventListener('transitionend', () => toast.remove());
-        }, 4000);
+    // --- UTILS ---
+    window.toggleLoadingOverlay = (show) => document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+    
+    function showToast(msg) {
+        const div = document.createElement('div');
+        div.className = 'toast-message';
+        div.textContent = msg;
+        document.getElementById('toast-container').appendChild(div);
+        setTimeout(() => div.classList.add('show'), 10);
+        setTimeout(() => div.remove(), 4000);
     }
 
-    function loadScript(src, callback) {
-        const existing = document.querySelector('script[data-spm-script]');
-        if (existing) existing.remove();
-        const script = document.createElement('script');
-        script.src = src;
-        script.async = true;
-        script.dataset.spmScript = true;
-        script.onload = callback;
-        script.onerror = () => {
-            alert(`Failed to load script: ${src}`);
-            window.toggleLoadingOverlay(false);
-        };
-        document.body.appendChild(script);
+    function loadScript(src, cb) {
+        const old = document.querySelector(`script[src="${src}"]`);
+        if(old) old.remove();
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = cb;
+        document.body.appendChild(s);
     }
 
-    // --- 2. DATA HANDLERS ---
-    let crewData = [];
-    let stationSignalData = [];
-    let cliDataMap = {}; 
-
-    const fetchCSV = async (filePath) => {
-        try {
-            const response = await fetch(filePath);
-            if (!response.ok) throw new Error("File not found");
-            const text = await response.text();
-            return new Promise((resolve) => {
-                Papa.parse(text, {
-                    header: true, skipEmptyLines: true,
-                    transform: (v) => v.trim(),
-                    complete: (res) => resolve(res.data)
-                });
-            });
-        } catch (error) {
-            console.warn(`Could not load ${filePath} (This is expected if running without a server).`);
-            return [];
-        }
-    };
-
-    // --- 3. FETCH HISTORY (Using Primary Script - No API Key) ---
-    async function fetchLpAbnormalities(lpId) {
-        const listContainer = document.getElementById('lp-abnormalities-list');
-        const summaryList = document.getElementById('lp-abnormality-summary-list');
-        
-        // Reset UI
-        listContainer.innerHTML = 'Loading records...';
-        
-        if (!lpId) {
-            listContainer.innerHTML = 'Enter LP ID to view records.';
-            return;
-        }
-
-        // --- PRIMARY SCRIPT URL (Same as Write) ---
-        const MASTER_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyIpH28RYtLBazZQ1ehco5-rtenvNqnmn4FhnJdPz9Ww5KMbtm0-oZF2KMxWA9CLApg/exec';
-
-        try {
-            const response = await fetch(MASTER_SCRIPT_URL); // doGet call
-            const rows = await response.json(); // Full Data
-
-            let found = false;
-            let abnormalities = [];
-            // Counters
-            let counts = { bft_nd: 0, bpt_nd: 0, bft_rule: 0, bpt_rule: 0, late_ctrl: 0, overspeed: 0, others: 0 };
-
-            // Column Indices (23-Col Structure)
-            const LP_ID_COL = 3;       // Col D
-            const ABNORMALITY_COL = 17; // Col R
-            const DATE_COL = 0;        // Col A
-
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (String(row[LP_ID_COL]).trim() === lpId) {
-                    found = true;
-                    const abText = row[ABNORMALITY_COL];
-                    const dateVal = row[DATE_COL];
-                    let dateStr = 'N/A';
-                    if(dateVal) dateStr = new Date(dateVal).toLocaleDateString();
-
-                    if (abText && abText !== 'NIL') {
-                        abnormalities.push({ date: dateStr, text: abText });
-                        
-                        // Simple text matching for summary (since columns are merged in new structure)
-                        if(abText.includes('BFT not done')) counts.bft_nd++;
-                        if(abText.includes('BPT not done')) counts.bpt_nd++;
-                        if(abText.includes('rule')) counts.bft_rule++; // Approximation
-                        if(abText.includes('Overspeed')) counts.overspeed++;
-                    }
-                }
-            }
-
-            // Update UI
-            if (!found) {
-                listContainer.innerHTML = '<span style="color:var(--accent-color)">No prior records found (First Entry).</span>';
-            } else if (abnormalities.length === 0) {
-                listContainer.innerHTML = '<span style="color:var(--success-color)">Clean Record (NIL Abnormalities).</span>';
-            } else {
-                const last10 = abnormalities.slice(-10).reverse();
-                listContainer.innerHTML = last10.map(x => `<div style="border-bottom:1px solid #333; padding:4px;"><strong>${x.date}:</strong> ${x.text}</div>`).join('');
-            }
-
-            // Update Counts (Approximated)
-            document.getElementById('bft-not-done-count').innerText = counts.bft_nd;
-            document.getElementById('overspeeding-count').innerText = counts.overspeed;
-            // ... map others similarly
-
-        } catch (error) {
-            console.error(error);
-            listContainer.innerHTML = "Could not fetch history (Network/Script Error).";
-        }
-    }
-
-    // --- 4. INITIALIZATION ---
+    // --- MAIN LOGIC ---
     document.addEventListener('DOMContentLoaded', async () => {
-        // Theme Toggle
-        const toggle = document.querySelector('.theme-switch input');
-        if(localStorage.getItem('theme') === 'day-mode') {
-            document.body.classList.add('day-mode');
-            toggle.checked = false;
-        } else {
-            toggle.checked = true; // Default Dark
-        }
-        toggle.addEventListener('change', (e) => {
-            document.body.classList.toggle('day-mode');
-            localStorage.setItem('theme', e.target.checked ? 'night-mode' : 'day-mode');
-        });
+        // Data Loading
+        let crewData = [], stationSignalData = [], cliDataMap = {};
+        
+        const fetchCSV = async (url) => {
+            try { return (await Papa.parse(await (await fetch(url)).text(), {header:true, skipEmptyLines:true})).data; } 
+            catch { return []; }
+        };
 
-        // Load CLI Data
-        fetch('CLIMICRO.csv').then(r => r.text()).then(txt => {
-            const lines = txt.split('\n');
-            lines.slice(1).forEach(l => {
-                const p = l.split(',');
-                if(p.length >= 3) cliDataMap[p[0].trim().toUpperCase()] = { name: p[1].trim(), hq: p[2].trim() };
-            });
-        }).catch(e => console.log("No CLI CSV"));
-
-        // Load Crew & Stations (Try Local CSVs first to avoid API issues)
+        // Load Static Data
         crewData = await fetchCSV('CREW.csv');
         stationSignalData = await fetchCSV('Station_Signal_Interdistant.csv');
-        
-        // Populate Section Dropdown
-        const secSelect = document.getElementById('section');
-        const sections = [...new Set(stationSignalData.map(r => r['SECTION']))];
-        sections.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s;
-            opt.textContent = s;
-            secSelect.appendChild(opt);
-        });
+        window.stationSignalData = stationSignalData; // Make global
 
-        // Section Change Listener
-        secSelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            const stns = [...new Set(stationSignalData.filter(r => r['SECTION'] === val).map(r => r['STATION']))];
-            const from = document.getElementById('fromSection');
-            const to = document.getElementById('toSection');
-            from.innerHTML = '<option selected disabled>Select From</option>';
-            to.innerHTML = '<option selected disabled>Select To</option>';
-            stns.forEach(s => {
-                from.add(new Option(s, s));
-                to.add(new Option(s, s));
+        // Load CLI Data
+        fetch('CLIMICRO.csv').then(r=>r.text()).then(t => {
+            t.split('\n').slice(1).forEach(l => {
+                const p = l.split(',');
+                if(p[0]) cliDataMap[p[0].trim().toUpperCase()] = {name:p[1]?.trim(), hq:p[2]?.trim()};
             });
         });
 
-        // LP ID Listener (Auto-fill)
-        document.getElementById('lpId').addEventListener('input', (e) => {
-            const val = e.target.value.toUpperCase();
-            e.target.value = val;
-            const rec = crewData.find(c => c['CREWID'] === val);
-            if(rec) {
-                document.getElementById('lpName').value = rec['CREW NAME'];
-                document.getElementById('lpDesg').value = rec['DESG'];
-                document.getElementById('lpGroupCli').value = rec['CLI NAME'];
-                document.getElementById('lpCugNumber').value = rec['CUG NUMBER'];
-                fetchLpAbnormalities(val); // Fetch History
-            }
-        });
+        // Populate Dropdowns
+        const secSelect = document.getElementById('section');
+        [...new Set(stationSignalData.map(r=>r.SECTION))].forEach(s => secSelect.add(new Option(s,s)));
+        
+        secSelect.onchange = (e) => {
+            const stns = [...new Set(stationSignalData.filter(r=>r.SECTION===e.target.value).map(r=>r.STATION))];
+            const from = document.getElementById('fromSection'), to = document.getElementById('toSection');
+            from.innerHTML = to.innerHTML = '<option selected disabled>Select</option>';
+            stns.forEach(s => { from.add(new Option(s,s)); to.add(new Option(s,s)); });
+        };
 
-        // ALP ID Listener
-        document.getElementById('alpId').addEventListener('input', (e) => {
-            const val = e.target.value.toUpperCase();
-            e.target.value = val;
-            const rec = crewData.find(c => c['CREWID'] === val);
-            if(rec) {
-                document.getElementById('alpName').value = rec['CREW NAME'];
-                document.getElementById('alpDesg').value = rec['DESG'];
-                document.getElementById('alpGroupCli').value = rec['CLI NAME'];
-                document.getElementById('alpCugNumber').value = rec['CUG NUMBER'];
-            }
-        });
+        // Auto-Fill Handlers
+        const setupAutoFill = (idInput, nameId, desgId, cliId, cugId, isLp) => {
+            document.getElementById(idInput).addEventListener('input', (e) => {
+                const val = e.target.value.toUpperCase();
+                e.target.value = val;
+                const rec = crewData.find(c => c.CREWID === val);
+                if(rec) {
+                    document.getElementById(nameId).value = rec['CREW NAME'];
+                    document.getElementById(desgId).value = rec.DESG;
+                    document.getElementById(cliId).value = rec['CLI NAME'];
+                    document.getElementById(cugId).value = rec['CUG NUMBER'];
+                    if(isLp) fetchHistory(val);
+                }
+            });
+        };
+        setupAutoFill('lpId', 'lpName', 'lpDesg', 'lpGroupCli', 'lpCugNumber', true);
+        setupAutoFill('alpId', 'alpName', 'alpDesg', 'alpGroupCli', 'alpCugNumber', false);
 
-        // CLI ID Listener
         document.getElementById('cliIdInput').addEventListener('input', (e) => {
             const val = e.target.value.toUpperCase();
             e.target.value = val;
@@ -814,61 +461,87 @@ input:checked + .slider:before { transform: translateX(28px); }
             }
         });
 
-        // Manual Buttons
-        document.getElementById('manualLpBtn').onclick = () => {
-            ['lpName','lpDesg','lpGroupCli','lpCugNumber'].forEach(id => document.getElementById(id).readOnly = false);
-        };
-        document.getElementById('manualAlpBtn').onclick = () => {
-            ['alpName','alpDesg','alpGroupCli','alpCugNumber'].forEach(id => document.getElementById(id).readOnly = false);
-        };
-
-        // SPM Type Logic
-        document.getElementById('spmType').addEventListener('change', (e) => {
+        // SPM Type Handler
+        document.getElementById('spmType').onchange = (e) => {
             const type = e.target.value;
             const input = document.getElementById('spmFile');
-            if(type === 'Medha') input.accept = '.txt';
-            else if(type === 'MR' || type === 'VEL') input.accept = '.pdf';
-            else input.accept = '.xlsx,.xls,.csv';
-            
-            loadScript(`${type}.js`, () => console.log(`${type} script loaded`));
-        });
+            input.accept = (type==='Medha') ? '.txt' : (['MR','VEL'].includes(type) ? '.pdf' : '.xlsx,.xls,.csv');
+            loadScript(`${type}.js`, () => console.log(`${type} Loaded`));
+        };
 
-        // FORM SUBMISSION
-        document.getElementById('spmForm').addEventListener('submit', async (e) => {
+        // Manual Entry
+        document.getElementById('manualLpBtn').onclick = () => ['lpName','lpDesg','lpGroupCli','lpCugNumber'].forEach(i=>document.getElementById(i).readOnly=false);
+        document.getElementById('manualAlpBtn').onclick = () => ['alpName','alpDesg','alpGroupCli','alpCugNumber'].forEach(i=>document.getElementById(i).readOnly=false);
+
+        // --- SUBMIT HANDLER ---
+        document.getElementById('spmForm').onsubmit = async (e) => {
             e.preventDefault();
             
-            // Save HQ for next page
-            const hq = document.getElementById('cliHqDisplay').value;
-            localStorage.setItem('currentSessionHq', hq);
-
+            // Validation
+            if(document.getElementById('fromSection').value === document.getElementById('toSection').value) 
+                return alert("From and To stations cannot be same");
+                
+            localStorage.setItem('currentSessionHq', document.getElementById('cliHqDisplay').value);
             window.toggleLoadingOverlay(true);
+            showToast("Starting E-GARUD Analysis...");
 
             try {
-                // 1. Upload to Drive (via GoogleApiHandler)
+                // 1. Upload to Master Sheet
                 const uploadRes = await uploadDataAndFileToGoogle();
-                if(uploadRes.status === 'success') showToast('File Uploaded to Master Data Bank');
+                if(uploadRes.status !== 'success') throw new Error("Upload Failed");
+                showToast("File Uploaded. Analyzing...");
 
-                // 2. Process File Locally
-                const spmFile = document.getElementById('spmFile').files[0];
+                // 2. Parse CUG
                 const cugFile = document.getElementById('cugFile').files[0];
                 let cugData = [];
-                
                 if(cugFile) {
-                    const text = await cugFile.text();
-                    cugData = Papa.parse(text, {header:true}).data;
+                    cugData = (await Papa.parse(await cugFile.text(), {header:true, skipEmptyLines:true})).data.map(r => ({
+                        ...r, startDateTime: new Date(r['Start Date & Time']), endDateTime: new Date(r['End Date & Time']), duration: parseInt(r['Duration in Sec'])
+                    }));
                 }
 
-                // Call Analysis Script
-                if(window.analyzeSPMData) await window.analyzeSPMData(spmFile, cugData);
-                else if(window.analyzeData) await window.analyzeData(spmFile, cugData);
-                else alert("Analysis Script not ready yet.");
+                // 3. Call Specific Analysis Script
+                const file = document.getElementById('spmFile').files[0];
+                if(window.analyzeSPMData) await window.analyzeSPMData(file, cugData);
+                else throw new Error("Analysis script not loaded. Select SPM Type again.");
 
             } catch(err) {
                 console.error(err);
                 alert("Error: " + err.message);
                 window.toggleLoadingOverlay(false);
             }
-        });
+        };
+
+        // --- HISTORY FETCH (Primary Script) ---
+        async function fetchHistory(id) {
+            const list = document.getElementById('lp-abnormalities-list');
+            list.innerHTML = "Fetching records...";
+            try {
+                // PRIMARY URL (Apps Script)
+                const url = 'https://script.google.com/macros/s/AKfycbyIpH28RYtLBazZQ1ehco5-rtenvNqnmn4FhnJdPz9Ww5KMbtm0-oZF2KMxWA9CLApg/exec';
+                const rows = await (await fetch(url)).json();
+                
+                const recs = rows.filter(r => String(r[3]).trim() === id); // Col D = LP ID
+                if(!recs.length) return list.innerHTML = "No prior records.";
+                
+                list.innerHTML = recs.slice(-10).reverse().map(r => `<div><strong>${new Date(r[0]).toLocaleDateString()}:</strong> ${r[17]}</div>`).join('');
+                
+                // Counters
+                let counts = {bft:0, bpt:0, rule:0, speed:0, other:0};
+                recs.forEach(r => {
+                    const txt = (r[17]||'').toLowerCase();
+                    if(txt.includes('bft')) counts.bft++;
+                    if(txt.includes('bpt')) counts.bpt++;
+                    if(txt.includes('rule')) counts.rule++;
+                    if(txt.includes('speed')) counts.speed++;
+                });
+                document.getElementById('bft-not-done-count').innerText = counts.bft;
+                document.getElementById('overspeeding-count').innerText = counts.speed;
+                // ... map others
+            } catch(e) {
+                list.innerHTML = "Error fetching history.";
+            }
+        }
     });
     </script>
 </body>
