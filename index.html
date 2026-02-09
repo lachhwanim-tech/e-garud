@@ -16,7 +16,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
     <style>
-        /* Modern E-GARUD Theme */
+        /* === Modern E-GARUD Theme (Keeping UI Exact) === */
         :root {
             --bg-gradient: linear-gradient(160deg, #020024 0%, #090979 35%, #00d4ff 100%);
             --glass-bg: rgba(255, 255, 255, 0.05);
@@ -87,7 +87,6 @@
             font-weight: 400;
         }
 
-        /* Glass Box */
         .box {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -191,7 +190,6 @@
             box-shadow: 0 6px 20px rgba(0, 212, 255, 0.6);
         }
 
-        /* History List */
         #lp-abnormalities-list, #lp-abnormality-summary-list {
             font-size: 0.9rem;
             line-height: 1.5;
@@ -203,7 +201,6 @@
             justify-content: space-between;
         }
 
-        /* Toast Notification */
         #toast-container {
             position: fixed;
             top: 20px;
@@ -227,7 +224,6 @@
         }
         .toast-message.show { opacity: 1; transform: translateX(0); }
 
-        /* Loading Overlay */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -271,16 +267,18 @@
                     </div>
 
                     <div class="section-header"><h2>History Profile</h2></div>
-                    <div class="box"><div id="lp-abnormalities-list">Enter LP ID to view records.</div></div>
+                    <div class="box"><div id="lp-abnormalities-list" style="text-align:left;">Enter LP ID to view records.</div></div>
                     <div class="box">
                         <ul id="lp-abnormality-summary-list">
                             <li>BFT not done: <strong id="bft-not-done-count">0</strong></li>
                             <li>BPT not done: <strong id="bpt-not-done-count">0</strong></li>
-                            <li>Rule Violation: <strong id="bft-rule-count">0</strong></li>
+                            <li>BFT not done as per rule: <strong id="bft-rule-count">0</strong></li>
+                            <li>BPT not done as per rule: <strong id="bpt-rule-count">0</strong></li>
                             <li>Late Controlling: <strong id="late-controlling-count">0</strong></li>
                             <li>Overspeeding: <strong id="overspeeding-count">0</strong></li>
-                            <li>Others: <strong id="others-abnormalities-count">0</strong></li>
+                            <li>Others Abnormalities: <strong id="others-abnormalities-count">0</strong></li>
                         </ul>
+                        <p id="lp-abnormality-summary-message" style="margin-top: 10px; font-style: italic;"></p>
                     </div>
                 </div>
 
@@ -336,17 +334,19 @@
                             <option value="MR">MR</option>
                             <option value="VEL">VEL</option>
                             <option value="RTIS">RTIS</option>
-                            <option value="SHM">SHM (LocoSHM)</option>
                         </select>
                     </div>
                     <div class="form-group" style="flex:1">
                         <label>Max Speed (kmph)</label>
                         <select id="maxPermissibleSpeed" required>
-                            <option value="60">60</option>
-                            <option value="75">75</option>
-                            <option value="100">100</option>
-                            <option value="110">110</option>
-                            <option value="130">130</option>
+                            <option value="" disabled selected>Select Speed</option>
+                            <option value="40">40 kmph</option>
+                            <option value="60">60 kmph</option>
+                            <option value="75">75 kmph</option>
+                            <option value="100">100 kmph</option>
+                            <option value="110">110 kmph</option>
+                            <option value="120">120 kmph</option>
+                            <option value="130">130 kmph</option>
                         </select>
                     </div>
                 </div>
@@ -380,170 +380,352 @@
     <canvas id="stopChart" style="display:none"></canvas>
 
     <script>
-    // --- UTILS ---
-    window.toggleLoadingOverlay = (show) => document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-    
-    function showToast(msg) {
-        const div = document.createElement('div');
-        div.className = 'toast-message';
-        div.textContent = msg;
-        document.getElementById('toast-container').appendChild(div);
-        setTimeout(() => div.classList.add('show'), 10);
-        setTimeout(() => div.remove(), 4000);
+    // --- Global function to toggle loading overlay ---
+    window.toggleLoadingOverlay = function(show) {
+        document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+    };
+
+    function loadScript(src, callback) {
+        const existingScript = document.querySelector('script[data-spm-script]');
+        if (existingScript) existingScript.remove();
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.dataset.spmScript = "true";
+        script.onload = callback;
+        script.onerror = () => {
+            alert(`Failed to load script: ${src}. Please ensure the script exists and try again.`);
+            window.toggleLoadingOverlay(false);
+        };
+        document.body.appendChild(script);
     }
 
-    function loadScript(src, cb) {
-        const old = document.querySelector(`script[src="${src}"]`);
-        if(old) old.remove();
-        const s = document.createElement('script');
-        s.src = src;
-        s.onload = cb;
-        document.body.appendChild(s);
-    }
+    let crewData = [];
+    let stationSignalData = [];
+    let cliDataMap = {}; 
 
-    // --- MAIN LOGIC ---
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Data Loading
-        let crewData = [], stationSignalData = [], cliDataMap = {};
-        
-        const fetchCSV = async (url) => {
-            try { return (await Papa.parse(await (await fetch(url)).text(), {header:true, skipEmptyLines:true})).data; } 
-            catch { return []; }
-        };
-
-        // Load Static Data
-        crewData = await fetchCSV('CREW.csv');
-        stationSignalData = await fetchCSV('Station_Signal_Interdistant.csv');
-        window.stationSignalData = stationSignalData; // Make global
-
-        // Load CLI Data
-        fetch('CLIMICRO.csv').then(r=>r.text()).then(t => {
-            t.split('\n').slice(1).forEach(l => {
-                const p = l.split(',');
-                if(p[0]) cliDataMap[p[0].trim().toUpperCase()] = {name:p[1]?.trim(), hq:p[2]?.trim()};
-            });
-        });
-
-        // Populate Dropdowns
-        const secSelect = document.getElementById('section');
-        [...new Set(stationSignalData.map(r=>r.SECTION))].forEach(s => secSelect.add(new Option(s,s)));
-        
-        secSelect.onchange = (e) => {
-            const stns = [...new Set(stationSignalData.filter(r=>r.SECTION===e.target.value).map(r=>r.STATION))];
-            const from = document.getElementById('fromSection'), to = document.getElementById('toSection');
-            from.innerHTML = to.innerHTML = '<option selected disabled>Select</option>';
-            stns.forEach(s => { from.add(new Option(s,s)); to.add(new Option(s,s)); });
-        };
-
-        // Auto-Fill Handlers
-        const setupAutoFill = (idInput, nameId, desgId, cliId, cugId, isLp) => {
-            document.getElementById(idInput).addEventListener('input', (e) => {
-                const val = e.target.value.toUpperCase();
-                e.target.value = val;
-                const rec = crewData.find(c => c.CREWID === val);
-                if(rec) {
-                    document.getElementById(nameId).value = rec['CREW NAME'];
-                    document.getElementById(desgId).value = rec.DESG;
-                    document.getElementById(cliId).value = rec['CLI NAME'];
-                    document.getElementById(cugId).value = rec['CUG NUMBER'];
-                    if(isLp) fetchHistory(val);
-                }
-            });
-        };
-        setupAutoFill('lpId', 'lpName', 'lpDesg', 'lpGroupCli', 'lpCugNumber', true);
-        setupAutoFill('alpId', 'alpName', 'alpDesg', 'alpGroupCli', 'alpCugNumber', false);
-
-        document.getElementById('cliIdInput').addEventListener('input', (e) => {
-            const val = e.target.value.toUpperCase();
-            e.target.value = val;
-            if(cliDataMap[val]) {
-                document.getElementById('cliName').value = cliDataMap[val].name;
-                document.getElementById('cliHqDisplay').value = cliDataMap[val].hq;
-            }
-        });
-
-        // SPM Type Handler
-        document.getElementById('spmType').onchange = (e) => {
-            const type = e.target.value;
-            const input = document.getElementById('spmFile');
-            input.accept = (type==='Medha') ? '.txt' : (['MR','VEL'].includes(type) ? '.pdf' : '.xlsx,.xls,.csv');
-            loadScript(`${type}.js`, () => console.log(`${type} Loaded`));
-        };
-
-        // Manual Entry
-        document.getElementById('manualLpBtn').onclick = () => ['lpName','lpDesg','lpGroupCli','lpCugNumber'].forEach(i=>document.getElementById(i).readOnly=false);
-        document.getElementById('manualAlpBtn').onclick = () => ['alpName','alpDesg','alpGroupCli','alpCugNumber'].forEach(i=>document.getElementById(i).readOnly=false);
-
-        // --- SUBMIT HANDLER ---
-        document.getElementById('spmForm').onsubmit = async (e) => {
-            e.preventDefault();
-            
-            // Validation
-            if(document.getElementById('fromSection').value === document.getElementById('toSection').value) 
-                return alert("From and To stations cannot be same");
-                
-            localStorage.setItem('currentSessionHq', document.getElementById('cliHqDisplay').value);
-            window.toggleLoadingOverlay(true);
-            showToast("Starting E-GARUD Analysis...");
-
-            try {
-                // 1. Upload to Master Sheet
-                const uploadRes = await uploadDataAndFileToGoogle();
-                if(uploadRes.status !== 'success') throw new Error("Upload Failed");
-                showToast("File Uploaded. Analyzing...");
-
-                // 2. Parse CUG
-                const cugFile = document.getElementById('cugFile').files[0];
-                let cugData = [];
-                if(cugFile) {
-                    cugData = (await Papa.parse(await cugFile.text(), {header:true, skipEmptyLines:true})).data.map(r => ({
-                        ...r, startDateTime: new Date(r['Start Date & Time']), endDateTime: new Date(r['End Date & Time']), duration: parseInt(r['Duration in Sec'])
-                    }));
-                }
-
-                // 3. Call Specific Analysis Script
-                const file = document.getElementById('spmFile').files[0];
-                if(window.analyzeSPMData) await window.analyzeSPMData(file, cugData);
-                else throw new Error("Analysis script not loaded. Select SPM Type again.");
-
-            } catch(err) {
-                console.error(err);
-                alert("Error: " + err.message);
-                window.toggleLoadingOverlay(false);
-            }
-        };
-
-        // --- HISTORY FETCH (Primary Script) ---
-        async function fetchHistory(id) {
-            const list = document.getElementById('lp-abnormalities-list');
-            list.innerHTML = "Fetching records...";
-            try {
-                // PRIMARY URL (Apps Script)
-                const url = 'https://script.google.com/macros/s/AKfycbyIpH28RYtLBazZQ1ehco5-rtenvNqnmn4FhnJdPz9Ww5KMbtm0-oZF2KMxWA9CLApg/exec';
-                const rows = await (await fetch(url)).json();
-                
-                const recs = rows.filter(r => String(r[3]).trim() === id); // Col D = LP ID
-                if(!recs.length) return list.innerHTML = "No prior records.";
-                
-                list.innerHTML = recs.slice(-10).reverse().map(r => `<div><strong>${new Date(r[0]).toLocaleDateString()}:</strong> ${r[17]}</div>`).join('');
-                
-                // Counters
-                let counts = {bft:0, bpt:0, rule:0, speed:0, other:0};
-                recs.forEach(r => {
-                    const txt = (r[17]||'').toLowerCase();
-                    if(txt.includes('bft')) counts.bft++;
-                    if(txt.includes('bpt')) counts.bpt++;
-                    if(txt.includes('rule')) counts.rule++;
-                    if(txt.includes('speed')) counts.speed++;
+    const fetchCSV = async (filePath) => {
+        try {
+            const response = await fetch(filePath);
+            if (!response.ok) throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
+            const text = await response.text();
+            return new Promise((resolve) => {
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transform: (value) => value.trim(),
+                    complete: (result) => resolve(result.data),
                 });
-                document.getElementById('bft-not-done-count').innerText = counts.bft;
-                document.getElementById('overspeeding-count').innerText = counts.speed;
-                // ... map others
-            } catch(e) {
-                list.innerHTML = "Error fetching history.";
+            });
+        } catch (error) {
+            console.error(`Error loading ${filePath}:`, error);
+            throw error;
+        }
+    };
+
+    // --- Fetch Crew Data from Google Sheet (SANKET Logic) ---
+    async function fetchCrewDataFromGoogleSheet() {
+        const SPREADSHEET_ID = '1UtjGKgOXgc9e5NcCgaTg0BVrUVlF6Xx7SbfcHvUxV-A'; 
+        const SHEET_NAME = 'Sheet1';
+        const API_KEY = 'AIzaSyChXMJaTllbk8kg5w1bjM06PbbJO5MBeLo'; 
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Google Sheets API Error: ${response.status}`);
+            const data = await response.json();
+            const rows = data.values;
+            if (!rows || rows.length === 0) return [];
+            const headers = rows[0].map(h => h.trim().toUpperCase()); 
+            const crewList = [];
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.length === 0) continue; 
+                const crewObj = {};
+                headers.forEach((header, index) => {
+                    crewObj[header] = row[index] ? row[index].trim() : ''; 
+                });
+                crewList.push(crewObj);
             }
+            return crewList;
+        } catch (error) {
+            console.error('Error fetching Crew Data:', error);
+            return [];
+        }
+    }
+
+    // --- Fetch LP Abnormalities (SANKET Logic - Spread Out) ---
+    async function fetchLpAbnormalities(lpId) {
+        const abnormalitiesListContainer = document.getElementById('lp-abnormalities-list');
+        const summaryMessage = document.getElementById('lp-abnormality-summary-message');
+        
+        abnormalitiesListContainer.innerHTML = 'Loading previous records...';
+        summaryMessage.textContent = 'Loading summary...';
+
+        document.getElementById('bft-not-done-count').textContent = '0';
+        document.getElementById('bpt-not-done-count').textContent = '0';
+        document.getElementById('bft-rule-count').textContent = '0';
+        document.getElementById('bpt-rule-count').textContent = '0';
+        document.getElementById('late-controlling-count').textContent = '0';
+        document.getElementById('overspeeding-count').textContent = '0';
+        document.getElementById('others-abnormalities-count').textContent = '0';
+
+        if (!lpId) {
+            abnormalitiesListContainer.innerHTML = 'Enter LP ID to view previous records.';
+            summaryMessage.textContent = 'Enter LP ID to view summary.';
+            return;
+        }
+
+        const SPREADSHEET_ID = '1__RDoiJgxgHaHJo5aMByu-q0xJDXPswQopFo9jYAAdM';
+        const API_KEY = 'AIzaSyChXMJaTllbk8kg5w1bjM06PbbJO5MBeLo';
+        const SHEET_NAME = 'Sheet1';
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const rows = data.values || [];
+
+            if (rows.length === 0) {
+                abnormalitiesListContainer.innerHTML = 'Could not load data.';
+                return;
+            }
+
+            const LP_ID_COL = 5; 
+            const ABNORMALITY_COL = 39;  
+            const COUNT_COL = 40;        
+            const ACTION_TAKEN_COL = 41; 
+            const BFT_ND_COL = 42; const BPT_ND_COL = 43; const BFT_RULE_COL = 44;
+            const BPT_RULE_COL = 45; const LATE_CTRL_COL = 46; const OVERSPEED_COL = 47; const OTHERS_COL = 48;
+
+            let lpFound = false;
+            const abnormalities = [];
+            let counts = { bft_nd: 0, bpt_nd: 0, bft_rule: 0, bpt_rule: 0, late_ctrl: 0, overspeed: 0, others: 0 };
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (row[LP_ID_COL]?.trim() === lpId) {
+                    lpFound = true;
+                    const count = parseInt(row[COUNT_COL]);
+                    if (row[ABNORMALITY_COL] && !isNaN(count) && count > 0) {
+                        abnormalities.push({
+                            abnormality: row[ABNORMALITY_COL],
+                            action: row[ACTION_TAKEN_COL] || 'N/A',
+                            date: row[0] ? row[0].split(' ')[0] : 'N/A'
+                        });
+                    }
+                    counts.bft_nd += parseInt(row[BFT_ND_COL] || 0);
+                    counts.bpt_nd += parseInt(row[BPT_ND_COL] || 0);
+                    counts.bft_rule += parseInt(row[BFT_RULE_COL] || 0);
+                    counts.bpt_rule += parseInt(row[BPT_RULE_COL] || 0);
+                    counts.late_ctrl += parseInt(row[LATE_CTRL_COL] || 0);
+                    counts.overspeed += parseInt(row[OVERSPEED_COL] || 0);
+                    counts.others += parseInt(row[OTHERS_COL] || 0);
+                }
+            }
+
+            if (!lpFound) {
+                abnormalitiesListContainer.innerHTML = 'No prior analysis records found.';
+                summaryMessage.textContent = 'No prior analysis records found for summary.';
+            } else {
+                if (abnormalities.length === 0) {
+                    abnormalitiesListContainer.innerHTML = 'NIL abnormality found in previous records.';
+                } else {
+                    const lastTen = abnormalities.slice(-10).reverse();
+                    let listHtml = '<ol>';
+                    lastTen.forEach((item) => {
+                        listHtml += `<li style="margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <div><strong>Abnormalities (${item.date}):-</strong> ${item.abnormality}</div>
+                            <div><strong>Action taken:-</strong> ${item.action}</div>
+                        </li>`;
+                    });
+                    listHtml += '</ol>';
+                    abnormalitiesListContainer.innerHTML = listHtml;
+                }
+                document.getElementById('bft-not-done-count').textContent = counts.bft_nd;
+                document.getElementById('bpt-not-done-count').textContent = counts.bpt_nd;
+                document.getElementById('bft-rule-count').textContent = counts.bft_rule;
+                document.getElementById('bpt-rule-count').textContent = counts.bpt_rule;
+                document.getElementById('late-controlling-count').textContent = counts.late_ctrl;
+                document.getElementById('overspeeding-count').textContent = counts.overspeed;
+                document.getElementById('others-abnormalities-count').textContent = counts.others;
+                summaryMessage.textContent = '';
+            }
+        } catch (error) {
+            abnormalitiesListContainer.innerHTML = 'Error fetching records.';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Load CLI Data (Spread Out Logic)
+            fetch('CLIMICRO.csv').then(response => response.text()).then(csvText => {
+                const lines = csvText.split('\n');
+                for(let i=1; i<lines.length; i++) {
+                    const line = lines[i].trim();
+                    if(line) {
+                        const parts = line.split(','); 
+                        if(parts.length >= 3) {
+                            const id = parts[0].trim().toUpperCase();
+                            cliDataMap[id] = { name: parts[1].trim(), hq: parts[2].trim() };
+                        }
+                    }
+                }
+            });
+
+            crewData = await fetchCrewDataFromGoogleSheet();
+            stationSignalData = await fetchCSV('Station_Signal_Interdistant.csv');
+            window.stationSignalData = stationSignalData;
+
+            const sectionSelect = document.getElementById('section');
+            const uniqueSections = [...new Set(stationSignalData.map(row => row['SECTION']))];
+            uniqueSections.forEach(section => {
+                const option = document.createElement('option');
+                option.value = section; option.textContent = section;
+                sectionSelect.appendChild(option);
+            });
+
+            const fromSectionSelect = document.getElementById('fromSection');
+            const toSectionSelect = document.getElementById('toSection');
+
+            sectionSelect.addEventListener('change', (e) => {
+                const selectedSection = e.target.value;
+                fromSectionSelect.innerHTML = toSectionSelect.innerHTML = '<option value="" disabled selected>Select</option>';
+                if (selectedSection) {
+                    const stations = [...new Set(stationSignalData.filter(row => row['SECTION'] === selectedSection).map(row => row['STATION']))];
+                    stations.forEach(station => {
+                        fromSectionSelect.appendChild(new Option(station, station));
+                        toSectionSelect.appendChild(new Option(station, station));
+                    });
+                }
+            });
+
+            // LP ID Listener (Spread Out - No Consolidated Helper)
+            document.getElementById('lpId').addEventListener('input', (e) => {
+                const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                e.target.value = val;
+                const rec = crewData.find(record => record['CREWID'] === val);
+                if (rec) {
+                    document.getElementById('lpName').value = rec['CREW NAME'] || '';
+                    document.getElementById('lpDesg').value = rec['DESG'] || '';
+                    document.getElementById('lpGroupCli').value = rec['CLI NAME'] || '';
+                    document.getElementById('lpCugNumber').value = rec['CUG NUMBER'] || '';
+                    fetchLpAbnormalities(val);
+                } else {
+                    document.getElementById('lpName').value = document.getElementById('lpDesg').value = document.getElementById('lpGroupCli').value = document.getElementById('lpCugNumber').value = '';
+                    fetchLpAbnormalities(null);
+                }
+            });
+
+            // ALP ID Listener
+            document.getElementById('alpId').addEventListener('input', (e) => {
+                const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                e.target.value = val;
+                const rec = crewData.find(record => record['CREWID'] === val);
+                if (rec) {
+                    document.getElementById('alpName').value = rec['CREW NAME'] || '';
+                    document.getElementById('alpDesg').value = rec['DESG'] || '';
+                    document.getElementById('alpGroupCli').value = rec['CLI NAME'] || '';
+                    document.getElementById('alpCugNumber').value = rec['CUG NUMBER'] || '';
+                } else {
+                    document.getElementById('alpName').value = document.getElementById('alpDesg').value = document.getElementById('alpGroupCli').value = document.getElementById('alpCugNumber').value = '';
+                }
+            });
+
+            document.getElementById('cliIdInput').addEventListener('input', (e) => {
+                const val = e.target.value.toUpperCase(); e.target.value = val;
+                if(cliDataMap[val]) {
+                    document.getElementById('cliName').value = cliDataMap[val].name;
+                    document.getElementById('cliHqDisplay').value = cliDataMap[val].hq;
+                } else {
+                    document.getElementById('cliName').value = document.getElementById('cliHqDisplay').value = "";
+                }
+            });
+
+            document.getElementById('spmType').addEventListener('change', (e) => {
+                const type = e.target.value;
+                const fileInput = document.getElementById('spmFile');
+                if (type === 'Medha') fileInput.accept = '.txt';
+                else if (type === 'MR' || type === 'VEL') fileInput.accept = '.pdf';
+                else fileInput.accept = '.xlsx,.xls,.csv';
+                if (type) loadScript(`${type}.js`, () => console.log(`${type}.js loaded`));
+            });
+
+            document.getElementById('manualLpBtn').addEventListener('click', () => {
+                ['lpName', 'lpDesg', 'lpGroupCli', 'lpCugNumber'].forEach(id => document.getElementById(id).readOnly = false);
+            });
+            document.getElementById('manualAlpBtn').addEventListener('click', () => {
+                ['alpName', 'alpDesg', 'alpGroupCli', 'alpCugNumber'].forEach(id => document.getElementById(id).readOnly = false);
+            });
+
+            // Submission Handler (Exactly as SANKET logic flow)
+            document.getElementById('spmForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if(document.getElementById('fromSection').value === document.getElementById('toSection').value) 
+                    return alert("From and To stations cannot be same");
+
+                localStorage.setItem('currentSessionHq', document.getElementById('cliHqDisplay').value.trim());
+                window.toggleLoadingOverlay(true);
+                showToast("Starting Analysis...");
+
+                try {
+                    const uploadResult = await uploadDataAndFileToGoogle();
+                    if (uploadResult.status === 'success') showToast('File uploaded successfully.');
+                    else showToast('Drive Upload skipped/failed. Processing locally...');
+
+                    const cugFile = document.getElementById('cugFile').files[0];
+                    let processedCug = [];
+                    if (cugFile) {
+                        const text = await cugFile.text();
+                        const results = Papa.parse(text, {header:true, skipEmptyLines:true});
+                        const regex = /^(?:(\d{2})[-\/](\d{2})[-\/](\d{4})|(\d{4})[-\/](\d{2})[-\/](\d{2}))\s(\d{2}):(\d{2})(?::(\d{2}))?$/;
+                        processedCug = results.data.map(call => {
+                            const startStr = (call['Start Date & Time'] || '').trim();
+                            const endStr = (call['End Date & Time'] || '').trim();
+                            const sM = startStr.match(regex); const eM = endStr.match(regex);
+                            if(sM && eM) {
+                                let sD, eD; const sSec = sM[9] || '00', eSec = eM[9] || '00';
+                                if(sM[1]) {
+                                    sD = new Date(`${sM[3]}-${sM[2]}-${sM[1]}T${sM[7]}:${sM[8]}:${sSec}`);
+                                    eD = new Date(`${eM[3]}-${eM[2]}-${eM[1]}T${eM[7]}:${eM[8]}:${eSec}`);
+                                } else {
+                                    sD = new Date(`${sM[4]}-${sM[5]}-${sM[6]}T${sM[7]}:${sM[8]}:${sSec}`);
+                                    eD = new Date(`${eM[4]}-${eM[5]}-${eM[6]}T${eM[7]}:${eM[8]}:${eSec}`);
+                                }
+                                return {...call, startDateTime: sD, endDateTime: eD, duration: parseInt(call['Duration in Sec']) || 0, 'CUG MOBILE NO': call['CUG MOBILE NO']?.trim()};
+                            }
+                            return null;
+                        }).filter(Boolean);
+                    }
+
+                    const spmFile = document.getElementById('spmFile').files[0];
+                    if (typeof analyzeSPMData === 'function') await analyzeSPMData(spmFile, processedCug);
+                    else if (window.analyzeData) await window.analyzeData(spmFile, processedCug);
+                    else throw new Error("Analysis function not found.");
+
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                    window.toggleLoadingOverlay(false);
+                }
+            });
+
+        } catch (error) {
+            alert('Failed to load initial data.');
+            window.toggleLoadingOverlay(false);
         }
     });
+
+    function showToast(message) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 4000);
+    }
     </script>
 </body>
 </html>
