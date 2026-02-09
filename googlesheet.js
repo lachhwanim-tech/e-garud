@@ -1,6 +1,6 @@
 async function sendDataToGoogleSheet(data) {
-    const primaryAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbwdxbFr0JmD53StNfjeduWIlWt8cqh0Mz_GT5dH37cVLctt9lgem33eAgk2fZ5r6hIZiw/exec';
-    const otherAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbwdxbFr0JmD53StNfjeduWIlWt8cqh0Mz_GT5dH37cVLctt9lgem33eAgk2fZ5r6hIZiw/exec'; 
+    const primaryAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbzsliK19W22IEMxKCakRkRjYgEIDtVQaSL7_7xm80Hpmod715nePWD2OD7OUiK76O8f8g/exec';
+    const otherAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbzsliK19W22IEMxKCakRkRjYgEIDtVQaSL7_7xm80Hpmod715nePWD2OD7OUiK76O8f8g/exec'; 
     const ALLOWED_HQS = ['BYT', 'R', 'RSD', 'DBEC', 'DURG', 'DRZ', 'MXA', 'BYL', 'BXA', 'AAGH', 'PPYD'];
 
     const getVal = (arr, labels) => {
@@ -24,16 +24,11 @@ async function sendDataToGoogleSheet(data) {
     const now = new Date();
     const currentDateTime = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth()+1)).slice(-2) + '/' + now.getFullYear() + ' ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2) + ':' + ('0' + now.getSeconds()).slice(-2);
 
-    let fromStn = '', toStn = '';
-    if (data.stationStops && data.stationStops.length > 0) {
-        fromStn = data.stationStops[0].station || '';
-        toStn = data.stationStops[data.stationStops.length - 1].station || '';
-    }
-
     let journeyDate = getVal(data.trainDetails, ['Journey Date', 'Date']) || new Date().toLocaleDateString('en-GB');
     let trainNo = getVal(data.trainDetails, ['Train No', 'Train Number', 'Train']);
     let lpId = getVal(data.lpDetails, ['LP ID', 'ID']);
 
+    // UI se safe extraction
     const abn = {
         bft_nd: document.getElementById('chk-bft-nd')?.checked ? 1 : 0,
         bpt_nd: document.getElementById('chk-bpt-nd')?.checked ? 1 : 0,
@@ -50,8 +45,8 @@ async function sendDataToGoogleSheet(data) {
         journeyDate: journeyDate,
         trainNo: trainNo,
         locoNo: getVal(data.trainDetails, ['Loco No', 'Loco Number', 'Loco']),
-        fromStn: fromStn,
-        toStn: toStn,
+        fromStn: (data.stationStops && data.stationStops[0]?.station) || '',
+        toStn: (data.stationStops && data.stationStops[data.stationStops.length - 1]?.station) || '',
         rakeType: getVal(data.trainDetails, ['Type of Rake', 'Rake Type']),
         mps: getVal(data.trainDetails, ['Max Permissible', 'MPS']),
         section: getVal(data.trainDetails, ['Section', 'Route']),
@@ -78,12 +73,13 @@ async function sendDataToGoogleSheet(data) {
         other: abn.others,
         totalAbn: Object.values(abn).reduce((a, b) => a + b, 0),
         uniqueId: `${lpId}_${trainNo}_${journeyDate.replace(/\//g, '-')}`,
-        stops: data.stationStops // Passing detailed stops array
+        stops: data.stationStops 
     };
 
     try {
         let storedHq = localStorage.getItem('currentSessionHq') || document.getElementById('cliHqDisplay')?.value || "UNKNOWN";
         let targetUrl = ALLOWED_HQS.includes(storedHq.toUpperCase()) ? primaryAppsScriptUrl : otherAppsScriptUrl;
         await fetch(targetUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ type: 'data', payload: payload }) });
-    } catch (error) { console.error('Error:', error); }
+        console.log("Data sent to sheet successfully");
+    } catch (error) { console.error('Error sending to sheet:', error); }
 }
