@@ -275,7 +275,7 @@
             <div id="speed-time" class="tab-pane"><canvas id="speedChart"></canvas></div>
             <div id="speed-range-summary" class="tab-pane"></div>
             <div id="violations" class="tab-pane"></div>
-           <div id="cli-observation" class="tab-pane">
+            <div id="cli-observation" class="tab-pane">
         <div style="background-color: #fffbe6; border-left: 5px solid #ffc107; padding: 15px; margin-bottom: 20px; border-radius: 5px; color: #664d03;">
           <h4 style="margin-top: 0; font-weight: bold;">कृपया ध्यान दें!</h4>
           <p style="margin-bottom: 0;">कृपया रिपोर्ट को ध्यान से पढ़ें। <strong>डाउनलोड बटन</strong> दबाने से पहले सभी विवरणों की समीक्षा कर लें। जैसे ही आप डाउनलोड पर क्लिक करेंगे, यह डेटा अंतिम रूप से गूगल शीट में सहेज दिया जाएगा और आप मुख्य पृष्ठ पर वापस चले जाएँगे। यह प्रक्रिया डुप्लीकेट एंट्री को रोकने के लिए की गई है, कृपया डुप्लीकेट एंट्री करने से बचें।</p>
@@ -356,10 +356,23 @@
         try {
             reportData = JSON.parse(localStorage.getItem('spmReportData') || '{}');
             console.log('Retrieved reportData:', reportData);
+            console.log('Speed Chart Config:', reportData.speedChartConfig);
+            console.log('Stop Chart Config:', reportData.stopChartConfig);
+            console.log('Speed Chart Image:', reportData.speedChartImage ? 'Present' : 'Missing');
+            console.log('Stop Chart Image:', reportData.stopChartImage ? 'Present' : 'Missing');
         } catch (error) {
             console.error('Error parsing reportData:', error);
             reportData = {};
         }
+
+        // Include spmConfig for brake tests
+        const spmConfig = {
+            brakeTests: {
+                GOODS: { bft: { minSpeed: 20, maxSpeed: 30 }, bpt: { minSpeed: 40, maxSpeed: 50 } },
+                COACHING: { bft: { minSpeed: 20, maxSpeed: 30 }, bpt: { minSpeed: 50, maxSpeed: 60 } },
+                MEMU: { bft: { minSpeed: 20, maxSpeed: 30 }, bpt: { minSpeed: 50, maxSpeed: 60 } }
+            }
+        };
 
         // Render report
         function renderReport() {
@@ -382,6 +395,7 @@
                 </table>
             `;
 
+            // Crew Details
             // Crew Details
             document.getElementById('crew-details').innerHTML = `
                 <h2>Crew Details</h2>
@@ -461,14 +475,14 @@
                 </table>
             `;
 
-            // Driving Analysis
+          // Driving Analysis (MODIFIED SECTION)
         document.getElementById('driving-analysis').innerHTML = `
               <h2>Driving Analysis</h2>
     ${reportData.stops?.length > 0 ? `
         <table class="report-table">
             <tr>
                 <th>Sr. No.</th><th>Stop Location</th><th>Stop Timing</th><th>Start Timing</th><th>Km</th>
-                <th>1000m</th><th>800m</th><th>500m</th><th>100m</th><th>50m</th>
+                <th>2000m</th><th>1000m</th><th>800m</th><th>600m</th><th>500m</th><th>400m</th><th>300m</th><th>100m</th><th>50m</th><th>20m</th><th>0m</th>
                 <th>System Generated Analysis</th>
                 <th>CLI Remark</th>
             </tr>
@@ -484,6 +498,12 @@
                     <td>${stop.speedsBefore[2] ? parseFloat(stop.speedsBefore[2]).toFixed(0) : 'N/A'}</td>
                     <td>${stop.speedsBefore[3] ? parseFloat(stop.speedsBefore[3]).toFixed(0) : 'N/A'}</td>
                     <td>${stop.speedsBefore[4] ? parseFloat(stop.speedsBefore[4]).toFixed(0) : 'N/A'}</td>
+                    <td>${stop.speedsBefore[5] ? parseFloat(stop.speedsBefore[5]).toFixed(0) : 'N/A'}</td>
+                    <td>${stop.speedsBefore[6] ? parseFloat(stop.speedsBefore[6]).toFixed(0) : 'N/A'}</td>
+                    <td>${stop.speedsBefore[7] ? parseFloat(stop.speedsBefore[7]).toFixed(0) : 'N/A'}</td>
+                    <td>${stop.speedsBefore[8] ? parseFloat(stop.speedsBefore[8]).toFixed(0) : 'N/A'}</td>
+                    <td>${stop.speedsBefore[9] ? parseFloat(stop.speedsBefore[9]).toFixed(0) : 'N/A'}</td>
+                    <td>${stop.speedsBefore[10] ? parseFloat(stop.speedsBefore[10]).toFixed(0) : 'N/A'}</td>
                     <td class="system-analysis">
                         <select class="cli-analysis system-analysis-dropdown" data-stop-index="${index}">
                             <option value="Smooth" ${stop.brakingTechnique === 'Smooth' ? 'selected' : ''}>Smooth</option>
@@ -513,6 +533,7 @@
                 </table>
             `;
              // Speed Range Summary
+           // Speed Range Summary
             document.getElementById('speed-range-summary').innerHTML = `
                 <h2>Distance Covered During Speed Range</h2>
                 ${reportData.speedRangeSummary?.summary?.length > 0 ? `
@@ -670,7 +691,8 @@
                         console.error('Stop Chart canvas not found');
                         document.getElementById('speed-distance').innerHTML += '<p class="error-message">Speed vs. Distance chart canvas not found.</p>';
                     } else {
-                        let stopLabels = reportData.stopChartConfig?.labels || [1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 0];
+                        // इसे खोजें और केवल एरे (Array) की वैल्यूज अपडेट करें
+let stopLabels = reportData.stopChartConfig?.labels || [2000, 1000, 800, 600, 500, 400, 300, 100, 50, 20, 0];
                         let stopDatasets = reportData.stopChartConfig?.datasets || [{
                             label: 'Test Stop',
                             data: [30, 28, 25, 20, 15, 10, 8, 5, 3, 1, 0],
@@ -719,20 +741,18 @@
 
                 loadingOverlay.style.display = 'none';
             }, 500);
-            
             // Fetch and display abnormalities in the CLI Observation tab
-            if (reportData.lpDetails && reportData.lpDetails.length > 0) {
-                // LP ID extraction might need adjustment based on how it's stored
-                // Assuming "LP ID: 12345" format
-                const lpIdRaw = reportData.lpDetails[0]; 
-                const lpId = lpIdRaw.split(':')[1]?.trim(); 
-                fetchAndDisplayAbnormalities(lpId, 'lp-abnormalities-container-cli');
-            } else {
-                const cliAbnormContainer = document.getElementById('lp-abnormalities-container-cli');
-                if (cliAbnormContainer) {
-                     cliAbnormContainer.innerHTML = '<p>LP ID not available to fetch previous records.</p>';
-                }
-            }
+if (reportData.lpDetails && reportData.lpDetails.length > 0) {
+    const lpId = reportData.lpDetails[0].split(': ')[1]?.trim();
+    // Target the new container in the CLI tab
+    fetchAndDisplayAbnormalities(lpId, 'lp-abnormalities-container-cli');
+} else {
+    // Handle case where LP ID might not be available
+    const cliAbnormContainer = document.getElementById('lp-abnormalities-container-cli');
+    if (cliAbnormContainer) {
+         cliAbnormContainer.innerHTML = '<p>LP ID not available to fetch previous records.</p>';
+    }
+}
         }
 
         // Initialize tabs
@@ -749,6 +769,7 @@
                     tab.classList.add('active');
                     document.getElementById(tab.dataset.tab).classList.add('active');
 
+                    // Buttons ko dikhane ya hide karne ka naya logic
                     if (tab.dataset.tab === 'cli-observation') {
                         downloadBtn.style.display = 'inline-block';
                         backBtn.style.display = 'inline-block';
@@ -759,107 +780,117 @@
                 });
             });
         }
+async function fetchAndDisplayAbnormalities(lpId, containerId) { // Added containerId parameter
+    const container = document.getElementById(containerId); // Use the provided containerId
+    if (!container) {
+        console.error(`Container with ID ${containerId} not found.`);
+        return;
+    }
 
-        // --- UPDATED FETCH FUNCTION (No API Key) ---
-        async function fetchAndDisplayAbnormalities(lpId, containerId) { 
-            const container = document.getElementById(containerId); 
-            if (!container) return;
+    container.style.textAlign = 'left'; // Ensure left alignment
 
-            container.style.textAlign = 'left'; 
+    if (!lpId || lpId === 'N/A') {
+        container.innerHTML = '<p>LP ID not provided.</p>';
+        container.style.textAlign = 'center'; // Center if no ID
+        return;
+    }
 
-            if (!lpId || lpId === 'N/A') {
-                container.innerHTML = '<p>LP ID not provided.</p>';
-                container.style.textAlign = 'center'; 
-                return;
-            }
+    container.innerHTML = 'Loading previous records...'; // Loading message
 
-            container.innerHTML = 'Loading previous records...'; 
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/1__RDoiJgxgHaHJo5aMByu-q0xJDXPswQopFo9jYAAdM/values/Sheet1?key=AIzaSyChXMJaTllbk8kg5w1bjM06PbbJO5MBeLo`;
 
-            // --- APPS SCRIPT URL (Primary) ---
-            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyIpH28RYtLBazZQ1ehco5-rtenvNqnmn4FhnJdPz9Ww5KMbtm0-oZF2KMxWA9CLApg/exec';
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+        const data = await response.json();
+        const rows = data.values || [];
 
-            try {
-                // Fetch using Apps Script doGet
-                const response = await fetch(SCRIPT_URL);
-                if (!response.ok) throw new Error(`Script request failed: ${response.status}`);
-                
-                const rows = await response.json(); // Direct Array of Arrays
+        let lpFound = false;
+        const abnormalities = []; // Stores { abnormality, action, date }
+        globalPreviousAbnormalitiesList = []; // <-- ADD THIS LINE (Resets the global list)
 
-                let lpFound = false;
-                const abnormalities = []; 
-                globalPreviousAbnormalitiesList = []; 
-                previousAbnormalityCounts = { bft_nd: 0, bpt_nd: 0, bft_rule: 0, bpt_rule: 0, late_ctrl: 0, overspeed: 0, others: 0 };
+        // Reset global counts (needed if PDF uses this too)
+        previousAbnormalityCounts = { bft_nd: 0, bpt_nd: 0, bft_rule: 0, bpt_rule: 0, late_ctrl: 0, overspeed: 0, others: 0 };
 
-                // --- 23-COLUMN INDICES ---
-                const LP_ID_COL = 3;       // Col D (Index 3)
-                const ABNORMALITY_COL = 17; // Col R (Index 17)
-                const ACTION_TAKEN_COL = 19; // Col T (Index 19)
-                const DATE_COL = 0;        // Col A (Index 0)
+        // Define column indices (confirm these match your sheet structure)
+        const DATE_COL = 0;           // A
+        const LP_ID_COL = 5;          // F
+        const ABNORMALITY_COL = 39;   // AM
+        const COUNT_COL = 40;         // AN
+        const ACTION_TAKEN_COL = 41;  // AP
 
-                // Start from 1 to skip header
-                for (let i = 1; i < rows.length; i++) { 
-                     const row = rows[i];
-                     // Check if row exists and match LP ID
-                     if (row && String(row[LP_ID_COL]).trim() === String(lpId).trim()) {
-                        lpFound = true;
-                        const abnormalityText = row[ABNORMALITY_COL];
-                        const actionTakenText = row[ACTION_TAKEN_COL] || 'N/A';
-                        
-                        // Date parsing handling
-                        let datePart = 'N/A';
-                        if (row[DATE_COL]) {
-                            const d = new Date(row[DATE_COL]);
-                            if (!isNaN(d.getTime())) {
-                                datePart = d.toLocaleDateString('en-GB');
-                            } else {
-                                datePart = row[DATE_COL]; // Use as is if not a standard date format
-                            }
-                        }
+        // Summary Columns (confirm indices)
+        const BFT_ND_COL = 42;      // AQ
+        const BPT_ND_COL = 43;      // AR
+        const BFT_RULE_COL = 44;    // AS
+        const BPT_RULE_COL = 45;    // AT
+        const LATE_CTRL_COL = 46;   // AU
+        const OVERSPEED_COL = 47;   // AV
+        const OTHERS_COL = 48;      // AW
 
-                        if (abnormalityText && abnormalityText !== 'NIL') {
-                            const fetchedAbnormality = {
-                                abnormality: abnormalityText,
-                                action: actionTakenText,
-                                date: datePart
-                            };
-                            abnormalities.push(fetchedAbnormality);
-                            globalPreviousAbnormalitiesList.push(fetchedAbnormality); 
-                        }
-                        
-                        // NOTE: 23-Column structure me alag-alag counters nahi hain. 
-                        // Isliye hum historical counts ko exact nahi dikha sakte jab tak text parse na karein.
-                        // Stability ke liye abhi counts 0 rahenge, lekin LIST sahi dikhegi.
-                     }
+
+        for (let i = 1; i < rows.length; i++) { // Start from 1 to skip header
+             const row = rows[i];
+             if (row[LP_ID_COL]?.trim() === lpId) {
+                lpFound = true;
+                const count = parseInt(row[COUNT_COL]);
+                const abnormalityText = row[ABNORMALITY_COL];
+                const actionTakenText = row[ACTION_TAKEN_COL] || 'N/A';
+                const rawDateStr = row[DATE_COL] || '';
+                const datePart = rawDateStr.split(' ')[0];
+
+        if (abnormalityText && !isNaN(count) && count > 0) {
+                    const fetchedAbnormality = {
+                        abnormality: abnormalityText,
+                        action: actionTakenText,
+                        date: datePart
+                    };
+                    abnormalities.push(fetchedAbnormality);
+                    globalPreviousAbnormalitiesList.push(fetchedAbnormality); // <-- ADD THIS LINE
                 }
-
-                if (!lpFound) {
-                    container.innerHTML = '<p style="font-weight: bold; color: var(--accent-color);">No prior analysis records found for this LP.</p>';
-                    container.style.textAlign = 'center';
-                } else if (abnormalities.length === 0) {
-                    container.innerHTML = '<p style="font-weight: bold; color: var(--success-color);">NIL abnormality found in previous records.</p>';
-                     container.style.textAlign = 'center';
-                } else {
-                     const lastTenAbnormalities = abnormalities.slice(-10).reverse();
-                     let listHtml = '<ol style="padding-left: 20px; margin: 0; font-size: 0.85rem; line-height: 1.6;">';
-                     lastTenAbnormalities.forEach((item) => {
-                         listHtml += `<li style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">`;
-                         listHtml += `<div><strong style="color: var(--danger-color);">Abnormalities</strong>(<strong style="color: var(--text-color);">${item.date}</strong>):- ${item.abnormality}</div>`;
-                         listHtml += `<div><strong style="color: var(--accent-color);">Action taken:-</strong> ${item.action}</div>`;
-                         listHtml += `</li>`;
-                     });
-                     listHtml += '</ol>';
-                     container.innerHTML = listHtml;
-                }
-
-            } catch (error) {
-                console.error('Error fetching abnormalities:', error);
-                container.innerHTML = '<p style="color: var(--danger-color);">Could not fetch previous abnormality records.</p>';
-                 container.style.textAlign = 'center';
-            }
+                // Sum up previous counts
+                previousAbnormalityCounts.bft_nd += parseInt(row[BFT_ND_COL] || 0);
+                previousAbnormalityCounts.bpt_nd += parseInt(row[BPT_ND_COL] || 0);
+                previousAbnormalityCounts.bft_rule += parseInt(row[BFT_RULE_COL] || 0);
+                previousAbnormalityCounts.bpt_rule += parseInt(row[BPT_RULE_COL] || 0);
+                previousAbnormalityCounts.late_ctrl += parseInt(row[LATE_CTRL_COL] || 0);
+                previousAbnormalityCounts.overspeed += parseInt(row[OVERSPEED_COL] || 0);
+                previousAbnormalityCounts.others += parseInt(row[OTHERS_COL] || 0);
+             }
         }
 
-// PDF generation
-async function generatePDF() { 
+        console.log("Fetched Previous Counts (for PDF use):", previousAbnormalityCounts);
+
+        if (!lpFound) {
+            container.innerHTML = '<p style="font-weight: bold; color: var(--accent-color);">No prior analysis records found for this LP.</p>';
+            container.style.textAlign = 'center';
+        } else if (abnormalities.length === 0) {
+            container.innerHTML = '<p style="font-weight: bold; color: var(--success-color);">NIL abnormality found in previous records.</p>';
+             container.style.textAlign = 'center';
+        } else {
+             // Generate HTML list (same format as index.html)
+             const lastTenAbnormalities = abnormalities.slice(-10).reverse();
+             let listHtml = '<ol style="padding-left: 20px; margin: 0; font-size: 0.85rem; line-height: 1.6;">';
+             lastTenAbnormalities.forEach((item) => {
+                 listHtml += `<li style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">`;
+                 listHtml += `<div><strong style="color: var(--danger-color);">Abnormalities</strong>(<strong style="color: var(--text-color);">${item.date || 'N/A'}</strong>):- ${item.abnormality}</div>`;
+                 listHtml += `<div><strong style="color: var(--accent-color);">Action taken:-</strong> ${item.action}</div>`;
+                 listHtml += `</li>`;
+             });
+             listHtml += '</ol>';
+             container.innerHTML = listHtml;
+        }
+
+    } catch (error) {
+        console.error('Error fetching abnormalities:', error);
+        container.innerHTML = '<p style="color: var(--danger-color);">Could not fetch previous abnormality records.</p>';
+         container.style.textAlign = 'center';
+    }
+}
+        // PDF generation
+     // report.html <script> tag ke andar yeh poora function daalein
+
+async function generatePDF() { // <<< 1. Function ko ASYNC banaya gaya
     console.log("generatePDF started (Clean Layout Version)...");
     loadingOverlay.style.display = 'flex';
     try {
@@ -889,7 +920,7 @@ async function generatePDF() {
             doc.text('Analysis Through Sanket 1.0', pageWidth / 2, pageHeight - 10, { align: 'center' });
         };
         
-         const addFooterToAllPages = () => { 
+         const addFooterToAllPages = () => { // Helper to add footer to all pages at the end
              const pageCount = doc.internal.getNumberOfPages();
              for (let i = 1; i <= pageCount; i++) {
                  doc.setPage(i);
@@ -936,8 +967,9 @@ async function generatePDF() {
             if(rowHeight < 8) rowHeight = 8;
             y = checkPageOverflow(y, rowHeight);
             
+            // <<< FIX 1: setFillColor (Grayscale) >>>
             const rowColorVal = index % 2 === 0 ? 220 : 240;
-            doc.setFillColor(rowColorVal, rowColorVal, rowColorVal); 
+            doc.setFillColor(rowColorVal, rowColorVal, rowColorVal); // 3 args for gray
 
             doc.rect(margin, y, totalTableWidthTrain, rowHeight, 'F');
             doc.setDrawColor(150).setLineWidth(0.1);
@@ -955,26 +987,26 @@ async function generatePDF() {
 
        // --- Crew Details (AUTO-HEIGHT LOGIC) ---
         doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(0);
-        y = checkPageOverflow(y, 10); 
+        y = checkPageOverflow(y, 10); // Heading ke liye check
         doc.text('Crew Details', margin, y);
         doc.setDrawColor(0, 51, 102).setLineWidth(0.5).line(margin, y + 2, margin + 40, y + 2);
         y += 10;
 
         const boxWidth = 80;
-        const basePadding = 15; 
-        const headingHeight = 10; 
-        const lineHeight = 7; 
-        doc.setFontSize(10).setFont('helvetica', 'normal'); 
+        const basePadding = 15; // Upar-neeche padding
+        const headingHeight = 10; // "LP Details" heading ke liye
+        const lineHeight = 7; // 10pt font ke liye line height
+        doc.setFontSize(10).setFont('helvetica', 'normal'); // Calculation ke liye font set karna
 
         // LP Box ki height calculate karna
         let lpHeight = headingHeight + basePadding;
         if (reportData.lpDetails && reportData.lpDetails.length > 0) {
             reportData.lpDetails.forEach(detail => {
-                const lines = doc.splitTextToSize(String(detail), boxWidth - 10); 
+                const lines = doc.splitTextToSize(String(detail), boxWidth - 10); // 5 left + 5 right padding
                 lpHeight += lines.length * lineHeight;
             });
         } else {
-            lpHeight += lineHeight; 
+            lpHeight += lineHeight; // "No data" ke liye jagah
         }
 
         // ALP Box ki height calculate karna
@@ -988,22 +1020,25 @@ async function generatePDF() {
             alpHeight += lineHeight;
         }
 
-        const boxHeight = Math.max(lpHeight, alpHeight, 40); 
+        const boxHeight = Math.max(lpHeight, alpHeight, 40); // 40px minimum height
 
-        y = checkPageOverflow(y, boxHeight + 15); 
+        // Ab box draw karne ke liye page check karna
+        y = checkPageOverflow(y, boxHeight + 15); // Box + neeche ka gap
 
         const lpBoxX = margin;
-        const alpBoxX = margin + boxWidth + 20; 
+        const alpBoxX = margin + boxWidth + 20; // Beech ka gap 20
         doc.setDrawColor(0, 51, 102).setLineWidth(0.5);
         doc.rect(lpBoxX, y, boxWidth, boxHeight);
         doc.rect(alpBoxX, y, boxWidth, boxHeight);
 
+        // Headings daalna
         doc.setFontSize(11).setTextColor(0, 51, 102).setFont('helvetica', 'bold');
         doc.text('LP Details', lpBoxX + 5, y + 10);
         doc.text('ALP Details', alpBoxX + 5, y + 10);
 
+        // Content daalna (auto-wrap ke saath)
         doc.setFontSize(10).setTextColor(0).setFont('helvetica', 'normal');
-        let y_lp_text = y + 20; 
+        let y_lp_text = y + 20; // Heading ke neeche se start
         if (reportData.lpDetails && reportData.lpDetails.length > 0) {
             reportData.lpDetails.forEach(detail => {
                 const lines = doc.splitTextToSize(String(detail), boxWidth - 10);
@@ -1016,7 +1051,7 @@ async function generatePDF() {
             doc.text("No data available", lpBoxX + 5, y_lp_text);
         }
 
-        let y_alp_text = y + 20; 
+        let y_alp_text = y + 20; // Heading ke neeche se start
         if (reportData.alpDetails && reportData.alpDetails.length > 0) {
             reportData.alpDetails.forEach(detail => {
                 const lines = doc.splitTextToSize(String(detail), boxWidth - 10);
@@ -1029,10 +1064,11 @@ async function generatePDF() {
             doc.text("No data available", alpBoxX + 5, y_alp_text);
         }
 
-        y += boxHeight + 10; 
+        y += boxHeight + 10; // Box ke baad 'y' ko update karna
 
+        // Total Stops ko box ke neeche dikhana
         doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(0, 51, 102);
-        y = checkPageOverflow(y, 10); 
+        y = checkPageOverflow(y, 10); // Stop count ke liye jagah check
         doc.text(`Total Stops: ${reportData.stopCount || 0}`, margin, y);
         y += 15;
 
@@ -1077,6 +1113,7 @@ async function generatePDF() {
             let rowHeight = maxLines * 5.5; if (rowHeight < 8) rowHeight = 8;
             y = checkPageOverflow(y, rowHeight);
             
+            // <<< FIX: setFillColor (Grayscale) >>>
             const rowColorVal = index % 2 === 0 ? 220 : 240;
             doc.setFillColor(rowColorVal, rowColorVal, rowColorVal);
 
@@ -1128,6 +1165,7 @@ async function generatePDF() {
                 let rowHeight = maxLines * 6; if (rowHeight < 8) rowHeight = 8;
                 y = checkPageOverflow(y, rowHeight);
                 
+                // <<< FIX: setFillColor (Grayscale) >>>
                 const rowColorVal = idx % 2 === 0 ? 220 : 240;
                 doc.setFillColor(rowColorVal, rowColorVal, rowColorVal); 
 
@@ -1149,65 +1187,98 @@ async function generatePDF() {
         }
         y += 10;
 
-        // --- Driving Analysis ---
-        doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(0);
-        y = checkPageOverflow(y, 10);
-        doc.text('Driving Analysis', margin, y);
-        doc.setDrawColor(0, 51, 102).line(margin, y + 2, margin + 40, y + 2);
-        y += 10;
-
+        // --- Driving Analysis (Landscape Mode: 11-Point Braking Pattern) ---
         if (reportData.stops?.length > 0) {
-             const drivingBody = reportData.stops.map((stop, index) => {
-                 const systemAnalysisSelect = document.querySelector(`.system-analysis-dropdown[data-stop-index="${index}"]`);
-                 const finalSystemAnalysis = systemAnalysisSelect ? systemAnalysisSelect.value : stop.brakingTechnique;
-                 const cliRemarkInput = document.querySelector(`.cli-remark-input-row[data-stop-index="${index}"]`);
-                 const cliRemark = cliRemarkInput ? cliRemarkInput.value.trim() : 'NIL';
-                 return [
-                     stop.group, stop.stopLocation, stop.timeString, stop.startTiming,
-                     (stop.kilometer / 1000).toFixed(2),
-                     stop.speedsBefore[0] ? parseFloat(stop.speedsBefore[0]).toFixed(0) : 'NA',
-                     stop.speedsBefore[1] ? parseFloat(stop.speedsBefore[1]).toFixed(0) : 'NA',
-                     stop.speedsBefore[2] ? parseFloat(stop.speedsBefore[2]).toFixed(0) : 'NA',
-                     stop.speedsBefore[3] ? parseFloat(stop.speedsBefore[3]).toFixed(0) : 'NA',
-                     stop.speedsBefore[4] ? parseFloat(stop.speedsBefore[4]).toFixed(0) : 'NA',
-                     finalSystemAnalysis,
-                     cliRemark
-                 ];
-             });
-             doc.autoTable({
-                 startY: y,
-                 head: [['Sr', 'Location', 'Stop', 'Start', 'Km', '1000', '800', '500', '100', '50', 'System', 'CLI Remark']],
-                 body: drivingBody,
-                 theme: 'grid',
-                 headStyles: { fillColor: [0, 51, 102], fontSize: 8, cellPadding: 1, textColor: 255 }, 
-                 bodyStyles: { fontSize: 8, cellPadding: 1, overflow: 'linebreak' }, 
-                 columnStyles: {
-                     0: { cellWidth: 9 }, 1: { cellWidth: 27 }, 2: { cellWidth: 20 }, 3: { cellWidth: 20 }, 
-                     4: { cellWidth: 11 }, 5: { cellWidth: 9 }, 6: { cellWidth: 9 }, 7: { cellWidth: 9 },
-                     8: { cellWidth: 9 }, 9: { cellWidth: 9 }, 10: { cellWidth: 21 }, 11: { cellWidth: 25}
-                 },
-                 didDrawPage: (data) => { if(data.pageNumber > 1) { addFooter(); } }
-             });
-             y = doc.lastAutoTable.finalY + 10;
+            // 1. Add new page in Landscape mode
+            doc.addPage('a4', 'landscape');
+            y = margin; // Reset Y position for new page
+
+            // 2. Landscape Page Header
+            doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(0);
+            doc.text('Driving Analysis (11-Point Braking Pattern)', margin, y);
+            doc.setDrawColor(0, 51, 102).line(margin, y + 2, margin + 80, y + 2);
+            y += 10;
+
+            const drivingBody = reportData.stops.map((stop, index) => {
+                const systemAnalysisSelect = document.querySelector(`.system-analysis-dropdown[data-stop-index="${index}"]`);
+                const finalSystemAnalysis = systemAnalysisSelect ? systemAnalysisSelect.value : stop.brakingTechnique;
+                const cliRemarkInput = document.querySelector(`.cli-remark-input-row[data-stop-index="${index}"]`);
+                const cliRemark = cliRemarkInput ? cliRemarkInput.value.trim() : 'NIL';
+                
+                return [
+                    stop.group, 
+                    stop.stopLocation, // अब पूरा Location दिखा रहे हैं (काटा नहीं है)
+                    stop.timeString.split(' ')[1] || stop.timeString,
+                    (stop.kilometer / 1000).toFixed(2),
+                    // 11 Speed Points (0 to 10)
+                    stop.speedsBefore[0]||'0', stop.speedsBefore[1]||'0', stop.speedsBefore[2]||'0', 
+                    stop.speedsBefore[3]||'0', stop.speedsBefore[4]||'0', stop.speedsBefore[5]||'0', 
+                    stop.speedsBefore[6]||'0', stop.speedsBefore[7]||'0', stop.speedsBefore[8]||'0', 
+                    stop.speedsBefore[9]||'0', stop.speedsBefore[10]||'0',
+                    finalSystemAnalysis,
+                    cliRemark
+                ];
+            });
+
+            doc.autoTable({
+                startY: y,
+                // Full Headers for Landscape
+                head: [['Sr', 'Location', 'Time', 'Km', '2000m', '1000m', '800m', '600m', '500m', '400m', '300m', '100m', '50m', '20m', '0m', 'Analysis', 'Remark']],
+                body: drivingBody,
+                theme: 'grid',
+                // Bigger Font (8pt) & Better Padding
+                headStyles: { fillColor: [0, 51, 102], fontSize: 8, cellPadding: 2, halign: 'center', textColor: 255 },
+                bodyStyles: { fontSize: 8, cellPadding: 2, halign: 'center' },
+                columnStyles: {
+                    0: { cellWidth: 10 },  // Sr
+                    1: { cellWidth: 40, halign: 'left' }, // Location (Left align)
+                    2: { cellWidth: 18 },  // Time
+                    3: { cellWidth: 15 },  // Km
+                    // Speed Columns (Width ~11 each)
+                    4:{cellWidth:11}, 5:{cellWidth:11}, 6:{cellWidth:11}, 7:{cellWidth:11},
+                    8:{cellWidth:11}, 9:{cellWidth:11}, 10:{cellWidth:11}, 11:{cellWidth:11},
+                    12:{cellWidth:11}, 13:{cellWidth:11}, 14:{cellWidth:11},
+                    15: { cellWidth: 20 }, // Analysis
+                    16: { cellWidth: 35, halign: 'left' }  // Remark
+                },
+                didDrawPage: (data) => { 
+                    // No footer needed for landscape table page
+                }
+            });
+            
+            // 3. Switch back to Portrait for next sections (Graphs etc.)
+            doc.addPage('a4', 'portrait'); 
+            y = margin; // Reset Y for the new portrait page
         } else {
+            // If no stops, just print message on current page (Portrait)
             doc.setFontSize(10).setFont('helvetica', 'normal');
             y = checkPageOverflow(y, 10);
             doc.text('No stops found in the selected range.', margin, y);
             y += 10;
         }
 
-       // --- Graphs ---
+       // --- Graphs (Original Page Break Logic) ---
+
         doc.setFontSize(12).setFont('helvetica', 'bold').setTextColor(0);
+
+        // --- CHANGE 3.1 START: Graph+Header ke liye total space check ---
         const imgWidth = contentWidth * 0.9;
-        const imgHeight = imgWidth * (600 / 400); 
+        const imgHeight = imgWidth * (600 / 400); // 1.5 ratio
+        // 10 (text) + 10 (padding) + imgHeight + 10 (bottom padding)
         const spaceNeededForStopGraph = 10 + 10 + imgHeight + 10; 
-        y = checkPageOverflow(y, spaceNeededForStopGraph); 
+        
+        // y = checkPageOverflow(y, 100); // OLD
+        y = checkPageOverflow(y, spaceNeededForStopGraph); // NEW: Total space check
+        // --- CHANGE 3.1 END ---
         
         doc.text('Speed vs. Distance Before Stop', margin, y);
         doc.setDrawColor(0, 51, 102).line(margin, y + 2, margin + 60, y + 2);
         y += 10;
         if (reportData.stopChartImage) {
             try {
+                // const imgWidth = contentWidth * 0.9; // Upar define ho gaya
+                // const imgHeight = imgWidth * (600 / 400); // Upar define ho gaya
+                // y = checkPageOverflow(y, imgHeight + 10); // OLD: Yeh check galat tha
                 doc.addImage(reportData.stopChartImage, 'PNG', margin + (contentWidth * 0.05), y, imgWidth, imgHeight);
                 y += imgHeight + 10;
             } catch (e) { console.error("Error adding stop chart:", e); y += 10; }
@@ -1216,15 +1287,23 @@ async function generatePDF() {
             doc.text('No data available for the stop graph.', margin, y); y += 10;
         }
 
+        // --- CHANGE 3.2 START: Graph+Header ke liye total space check ---
         doc.setFontSize(12).setFont('helvetica', 'bold').setTextColor(0);
+        // imgWidth aur imgHeight pehle se defined hain
         const spaceNeededForSpeedGraph = 10 + 10 + imgHeight + 10; 
-        y = checkPageOverflow(y, spaceNeededForSpeedGraph); 
+
+        // y = checkPageOverflow(y, 100); // OLD
+        y = checkPageOverflow(y, spaceNeededForSpeedGraph); // NEW: Total space check
+        // --- CHANGE 3.2 END ---
 
         doc.text('Time vs. Speed Graph', margin, y);
         doc.setDrawColor(0, 51, 102).line(margin, y + 2, margin + 60, y + 2);
         y += 10;
         if (reportData.speedChartImage) {
             try {
+                // const imgWidth = contentWidth * 0.9; // Upar defined
+                // const imgHeight = imgWidth * (600 / 400); // Upar defined
+                // y = checkPageOverflow(y, imgHeight + 10); // OLD: Yeh check galat tha
                 doc.addImage(reportData.speedChartImage, 'PNG', margin + (contentWidth * 0.05), y, imgWidth, imgHeight);
                 y += imgHeight + 10;
             } catch (e) { console.error("Error adding speed chart:", e); y += 10; }
@@ -1254,6 +1333,7 @@ async function generatePDF() {
         doc.setTextColor(0).setFont('helvetica', 'normal');
         reportData.stationStops?.forEach((stop, index) => {
             y = checkPageOverflow(y, 8);
+            // <<< FIX: setFillColor (Grayscale) >>>
             const rowColorVal = index % 2 === 0 ? 220 : 240;
             doc.setFillColor(rowColorVal, rowColorVal, rowColorVal); 
             doc.rect(margin, y, contentWidth, 8, 'F');
@@ -1262,15 +1342,18 @@ async function generatePDF() {
             doc.text(stop.arrival || 'N/A', margin + 80, y + 6);
            doc.text(stop.departure || 'N/A', margin + 130, y + 6);
              y += 8;
-             });
+              });
              y += 10;
 
+            // --- CHANGE 4: Station Timings ke baad naya page ---
             doc.addPage();
             y = margin;
+            // --- END CHANGE 4 ---
 
             // --- Speed Summaries (Using autoTable) ---
             let finalY_tables = y;
             doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(0);
+            // finalY_tables = checkPageOverflow(finalY_tables, 10); // OLD: Naye page ke baad redundant
             doc.text('Distance Covered During Speed Range', margin, finalY_tables);
         finalY_tables += 10;
         
@@ -1312,6 +1395,7 @@ async function generatePDF() {
         doc.setDrawColor(0, 51, 102).line(margin, y + 2, margin + 55, y + 2);
         y += 10;
 
+        // Using autoTable for simplicity
         const overspeedBody = reportData.overSpeedDetails?.length > 0
             ? reportData.overSpeedDetails.map(d => [d.section, d.timeRange, d.speedRange])
             : [['No overspeeding found.', '', '']];
@@ -1358,12 +1442,20 @@ async function generatePDF() {
         doc.addPage();
         y = margin;
 
+        // --- <<< NEW FEATURE: Fetch & Combine Abnormalities >>> ---
+       // --- <<< MODIFIED FEATURE: Use Global Abnormalities (NO FETCH) >>> ---
+        
+        // We use the data fetched on page load to prevent duplicates
         let previousAbnormalitiesData = globalPreviousAbnormalitiesList;
+        
+        // We use the counts calculated on page load (this variable is set by fetchAndDisplayAbnormalities)
         let fetchedPreviousCounts = previousAbnormalityCounts; 
         
         console.log("PDF using pre-fetched abnormalities list:", previousAbnormalitiesData.length);
         console.log("PDF using pre-fetched abnormality counts:", fetchedPreviousCounts);
         
+        // --- <<< END OF MODIFICATION >>> ---
+
          let currentAbnormalityText = '';
          const checkboxes = document.querySelectorAll('#abnormalities-checkbox-container input[type="checkbox"]:checked');
          checkboxes.forEach((chk, index) => {
@@ -1390,6 +1482,8 @@ async function generatePDF() {
          }
          const neededPrevious = 10 - combinedAbnormalities.length;
          if (neededPrevious > 0) combinedAbnormalities.push(...previousAbnormalitiesData.slice(-neededPrevious));
+         // --- <<< END OF NEW FEATURE LOGIC >>> ---
+
 
         // --- <<< NEW FEATURE: Display Combined List >>> ---
         doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(0);
@@ -1437,6 +1531,8 @@ async function generatePDF() {
              doc.text('NIL abnormalities recorded.', margin, y); y += 8;
          }
          y += 10;
+        // --- <<< END OF NEW FEATURE >>> ---
+
 
         // --- OVERALL OBSERVATION ---
         doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(0);
@@ -1527,7 +1623,7 @@ async function generatePDF() {
         });
         
         // --- Add Footers to All Pages ---
-        addFooterToAllPages(); 
+        addFooterToAllPages(); // Call this once at the end
 
         // --- Save PDF ---
         doc.save(`SPM_Analysis_${reportData.trainDetails?.find(d => d.label === 'Train Number')?.value || 'Report'}.pdf`);
@@ -1536,13 +1632,69 @@ async function generatePDF() {
     } catch (error) {
         console.error('Error generating PDF:', error);
         alert('Failed to generate PDF. Please check console logs.');
-        throw error; 
+        throw error; // Re-throw error so the caller can catch it
     } finally {
         // loadingOverlay.style.display = 'none'; // <<< Let the CALLER (googlesheet.js) hide this
         console.log("generatePDF finished execution.");
     }
 }
-</script>
-<script src="googlesheet.js"></script>
+       // ✅ यह सही और संयुक्त (combined) कोड है
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // 1. रिपोर्ट और टैब को रेंडर करें
+                renderReport();
+                initializeTabs();
+
+                // 2. "Back to Form" बटन का लॉजिक
+                document.getElementById('backToForm').addEventListener('click', () => {
+                    localStorage.removeItem('spmReportData');
+                    window.location.href = 'index.html';
+                });
+
+                // 3. डाउनलोड बटन के लिए वैलिडेशन
+                const downloadBtn = document.getElementById('downloadReport');
+                const cliRemarksTextarea = document.getElementById('cliRemarks');
+                downloadBtn.disabled = true;
+                downloadBtn.title = 'Please enter at least 15 words in OVERALL OBSERVATION OF CLI SECTION.';
+
+                cliRemarksTextarea.addEventListener('input', () => {
+                    const text = cliRemarksTextarea.value.trim();
+                    const wordCount = text ? text.split(/\s+/).filter(word => word.length > 0).length : 0;
+                    if (wordCount >= 15) {
+                        downloadBtn.disabled = false;
+                        downloadBtn.title = 'Click to download the report.';
+                    } else {
+                        downloadBtn.disabled = true;
+                        downloadBtn.title = `Please enter at least ${15 - wordCount} more word(s).`;
+                    }
+                });
+
+                // 4. असामान्यता (Abnormality) चेकबॉक्स का लॉजिक
+                const totalAbnormalityInput = document.getElementById('totalAbnormality');
+                document.querySelectorAll('#abnormalities-checkbox-container input[type="checkbox"]').forEach(chk => {
+                    chk.addEventListener('change', () => {
+                        const textId = chk.dataset.textId;
+                        if (textId) {
+                            const textField = document.getElementById(textId);
+                            textField.style.display = chk.checked ? 'block' : 'none';
+                            textField.required = chk.checked;
+                            if (!chk.checked) {
+                                textField.value = '';
+                            }
+                        }
+                        const count = document.querySelectorAll('#abnormalities-checkbox-container input[type="checkbox"]:checked').length;
+                        totalAbnormalityInput.value = count;
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error initializing report:', error);
+                document.getElementById('reportContent').innerHTML = '<p class="error-message">Failed to load report. Please return to the form and try again.</p>';
+                loadingOverlay.style.display = 'none';
+            }
+        });
+    </script>
+     <script src="googlesheet.js"></script>
 </body>
+
 </html>
