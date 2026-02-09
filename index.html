@@ -864,7 +864,7 @@ input:checked + .slider:before {
         <li><b>Universal SPM Compatibility:</b> Seamlessly processes data from a wide array of SPM systems, including Laxven, Medha, Telpro, MR, VEL, and RTIS.</li>
         <li><b>Intelligent Anomaly Detection:</b> Automatically identifies and reports critical operational anomalies like overspeeding, wheel slip, and improper brake application.</li>
         <li><b>Advanced Data Visualization:</b> Renders complex data into intuitive, interactive charts for clear interpretation of locomotive performance.</li>
-        <li><b>Automated Reporting & Logging:</b> Instantly generates comprehensive PDF reports and logs all findings to a centralized Google Sheet for robust record-keeping and trend analysis.</li>
+        <li><b>Automated Reporting & Logging:</b> Instantly generates comprehensive PDF reports and logs all findings to a centralized Google  for robust record-keeping and trend analysis.</li>
     </ul>
 
     <div class="contributor-card">
@@ -954,7 +954,7 @@ input:checked + .slider:before {
 
     // --- Fetch Crew Data from Google Sheet ---
     async function fetchCrewDataFromGoogleSheet() {
-        const SPREADSHEET_ID = '1UtjGKgOXgc9e5NcCgaTg0BVrUVlF6Xx7SbfcHvUxV-A'; 
+        const SPREADSHEET_ID = '1fe8YqEBSFG6Z6r5JRdEfVkSsD5CWrsQ88oOmUyesMUo'; 
         const SHEET_NAME = 'Sheet1';
         const API_KEY = 'AIzaSyChXMJaTllbk8kg5w1bjM06PbbJO5MBeLo'; 
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
